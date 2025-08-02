@@ -1,1 +1,5 @@
 # RFID-ATTENDANCE-UI
+
+
+# RUN COMMAND
+- start-local
