@@ -10,9 +10,16 @@ def get_app_data_dir(app_name="CVE_REGISTER"):
 
     return app_data_dir
 
-def get_student_file_path():
-    base_dir = os.getenv("APPDATA", os.path.expanduser("~"))  # default to user folder
-    app_folder = os.path.join(base_dir, "CVE_ATTENDANCE")
-    os.makedirs(app_folder, exist_ok=True)
+def get_student_file_path(filename="logs.json"):
+    """
+    Returns the full path to the logs.json file (or any given filename)
+    inside the CVE_ATTENDANCE app data directory.
+    Ensures the directory exists.
+    """
+    app_folder = get_app_data_dir("CVE_ATTENDANCE")
+    return os.path.join(app_folder, filename)
 
-    return os.path.join(app_folder, "logs.json")
+def get_photo_folder_path():
+    path = os.path.join(os.getenv("APPDATA", os.path.expanduser("~")), "CVE_PHOTO")
+    os.makedirs(path, exist_ok=True)
+    return path

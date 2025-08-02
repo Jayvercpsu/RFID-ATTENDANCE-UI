@@ -482,7 +482,7 @@ body {
 .logs-container {
   position: relative;
   z-index: 2;
-  height: calc(100vh - 140px);
+  height: calc(100vh - 450px);
   overflow-y: auto;
   padding-right: 0.5rem;
 }
@@ -739,4 +739,48 @@ body {
 
 .submit-btn:hover {
   background: linear-gradient(to right, #004cb3, #007bff);
+}
+
+.qr-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.qr-modal.show {
+  display: flex;
+}
+
+.qr-panel {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 550px;
+  width: 100%;
+  position: relative;
+}
+
+.qr-close-btn {
+  position: absolute;
+  top: 0;
+  right: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+#reader2 {
+  border-radius: 12px;
+}
+
+#reader2 > div,
+#reader2 video {
+  border-radius: 12px !important;
+}
+
+#reader video, #reader2 video, #webcam {
+  transform: scaleX(-1);
 }

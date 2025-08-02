@@ -21,7 +21,7 @@
             <div class="school-name">Colleges Inc.</div>
           </div>
           <div class="branding-buttons">
-            <a href="{{ url_for("pages.admin_login") }}" class="admin-btn">
+            <a href="/admin/login" class="admin-btn">
               <i class="fas fa-user-shield"></i> Administrator
             </a>
           </div>
@@ -31,9 +31,9 @@
 
         <div class="right-section">
           <div class="time-display" id="live-clock">--:--:--</div>
-          <button class="register-btn">
+          <a class="register-btn">
             <i class="fas fa-user-plus"></i> Register
-          </button>
+          </a>
         </div>
       </div>
 
@@ -45,8 +45,12 @@
             <span class="close-btn" id="closeModal">&times;</span>
           </div>
           <form class="modal-form" id="registerForm">
-            <label>Full Name</label>
-            <input type="text" placeholder="Enter full name" required />
+            <label>Firstname</label>
+            <input type="text" placeholder="Enter first name" required />
+            <label>Middlename</label>
+            <input type="text" placeholder="Enter middle name" required />
+            <label>Lastname</label>
+            <input type="text" placeholder="Enter last name" required />
 
             <label>Age</label>
             <input type="number" placeholder="Enter age" required />
@@ -62,7 +66,7 @@
             <label>Grade</label>
             <input type="text" placeholder="Enter grade/year level" required />
 
-            <label>Section</label>
+            <label>Section/Strand/Course</label>
             <input type="text" placeholder="Enter section" required />
 
             <label>Contact Number</label>
@@ -74,9 +78,53 @@
             <label>Guardian's Name</label>
             <input type="text" placeholder="Enter guardian name" required />
 
-            <label>RFID Code</label>
-            <input type="text" placeholder="Scan or enter RFID" required />
+            <div style="margin-top: 20px;">
+              <!-- Code Type Toggle -->
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center;justify-content: left; gap: 10px;">
+                  <input style="width: auto;position: relative;bottom: 1px;" type="radio" name="codeType" value="input"
+                    checked />
+                  <p>Input Code</p>
+                </div>
+                <div style="display: flex; align-items: center;justify-content: left; gap: 10px;">
+                  <input style="width: auto;position: relative;bottom: 1px;" type="radio" name="codeType"
+                    value="scan" />
+                  <p>Scan Code</p>
+                </div>
+              </div>
 
+              <!-- Scanner Options (hidden by default) -->
+              <div id="scannerOptions"
+                style="display: none; margin-bottom: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 10px;margin-bottom: 10px;">
+                    <input style="width: auto;position: relative;bottom: 1px;" type="radio" name="scannerType"
+                      value="rfid" checked />
+                    <p>RFID Code</p>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <input style="width: auto;position: relative;bottom: 1px;" type="radio" name="scannerType"
+                      value="qr" />
+                    <p>QR Code</p>
+                  </div>
+                </div>
+                <button id="scanBtn" style="width: auto; position: relative; bottom: 10px;" type="button"
+                  class="submit-btn">Scan</button>
+              </div>
+
+              <!-- Input Code Field (shown by default) -->
+              <input id="manualCodeInput" type="text" placeholder="Enter code" />
+
+              <!-- Hidden field to store scanned QR -->
+              <input type="hidden" id="qrCodeValue" name="qr_code_value" />
+            </div>
+            <div style="margin-top: 20px;">
+              <label>Capture Photo (Optional)</label>
+              <video id="webcam" autoplay playsinline
+                style="display: block; border: 1px solid #ccc;width: 100%;"></video>
+              <canvas id="snapshotCanvas" style="display: none; border: 1px solid #ccc; width: 100%;"></canvas>
+              <button type="button" class="submit-btn" id="takeSnapshot">Take Photo</button>
+            </div>
             <button type="submit" class="submit-btn">Register</button>
           </form>
         </div>
@@ -94,8 +142,8 @@
 
             <div class="info-grid">
               <div class="info-item">
-                <div class="info-label">Student ID</div>
-                <div class="info-value" id="studentId">N/A</div>
+                <div class="info-label">Gender</div>
+                <div class="info-value" id="studentGender">N/A</div>
               </div>
 
               <div class="info-item">
@@ -104,13 +152,13 @@
               </div>
 
               <div class="info-item">
-                <div class="info-label">Guardian</div>
-                <div class="info-value" id="studentGuardian">N/A</div>
+                <div class="info-label">Status</div>
+                <div class="info-value" id="studentStatus">N/A</div>
               </div>
 
               <div class="info-item">
-                <div class="info-label">Contact</div>
-                <div class="info-value" id="studentContact">N/A</div>
+                <div class="info-label" id="studentTimeLabel">Date & Time</div>
+                <div class="info-value" id="studentTime">N/A</div>
               </div>
             </div>
           </div>
@@ -145,58 +193,28 @@
         <div class="panel-title">Recent Activity</div>
         <div class="panel-subtitle">Live attendance monitoring</div>
       </div>
-
       <div class="logs-container" id="logsContainer"></div>
+      <div id="inlineQrScanner" style="height:200px; display: none; width: 100%; max-width: 500px; margin-top: 20px;">
+        <div id="reader2" style="width: 100%;"></div>
+      </div>
     </div>
   </div>
 
+  <!-- SCANNER MODAL -->
+  <div class="qr-modal" id="qrModal">
+    <div class="qr-overlay"></div>
+    <div class="qr-panel">
+      <span class="qr-close-btn" id="closeQrModal">&times;</span>
+      <div id="reader" style="width: 100%; max-width: 500px;"></div>
+    </div>
+  </div>
+  <audio id="scanSound" preload="auto" src="{{ url_for('static', filename='sound/click.wav') }}"></audio>
+  <audio id="scanSoundError" preload="auto" src="{{ url_for('static', filename='sound/click-error.wav') }}"></audio>
   <script src="{{ url_for('static', filename='js/time-clock.js') }}"></script>
   <script src="{{ url_for('static', filename='js/register-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const registerForm = document.getElementById('registerForm');
-
-      registerForm.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const formData = {
-          full_name: registerForm[0].value,
-          age: registerForm[1].value,
-          gender: registerForm[2].value,
-          grade: registerForm[3].value,
-          section: registerForm[4].value,
-          contact: registerForm[5].value,
-          address: registerForm[6].value,
-          guardian: registerForm[7].value,
-          rfid_code: registerForm[8].value
-        };
-
-        try {
-          const res = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-          });
-
-          const result = await res.json();
-
-          if (res.ok) {
-            toastr.success(result.message);
-            registerForm.reset();
-            document.getElementById('registerModal').classList.remove('show');
-          } else {
-            toastr.error(result.error || 'Registration failed.');
-          }
-        } catch (err) {
-          toastr.error('Something went wrong.');
-          console.error(err);
-        }
-      });
-    });
-  </script>
   <script>
     async function loadLogs() {
       const res = await fetch('/api/logs');
@@ -209,15 +227,16 @@
       // Update student section with latest log
       if (latestLog) {
         document.querySelector('.student-photo').src =
-          latestLog.gender === 'female'
-            ? 'https://randomuser.me/api/portraits/women/65.jpg'
-            : 'https://randomuser.me/api/portraits/men/65.jpg';
+          latestLog.avatar ||
+          (latestLog.gender === 'female'
+            ? 'https://randomuser.me/api/portraits/lego/1.jpg'
+            : 'https://randomuser.me/api/portraits/lego/1.jpg');
 
-        document.querySelector('#studentName').textContent = latestLog.full_name;
-        document.querySelector('#studentId').textContent = latestLog.student_id;
+        document.querySelector('#studentName').textContent = latestLog.first_name + ' ' + latestLog.last_name;
+        document.querySelector('#studentGender').textContent = latestLog.gender?.charAt(0).toUpperCase() + latestLog.gender?.slice(1) || 'N/A';
         document.querySelector('#studentLevel').textContent = `${latestLog.grade} - ${latestLog.strandOrSec}`;
-        document.querySelector('#studentGuardian').textContent = latestLog.guardian;
-        document.querySelector('#studentContact').textContent = latestLog.contact;
+        document.querySelector('#studentStatus').textContent = latestLog == 'IN' ? 'Time In' : 'Time Out';
+        document.querySelector('#studentTime').textContent = formatTime(latestLog.timestamp);
       }
 
       // Update logs list
@@ -231,7 +250,7 @@
         entry.innerHTML = `
         <img src="${log.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="Student" class="log-avatar" />
         <div class="log-info">
-          <div class="log-name">${log.full_name}</div>
+          <div class="log-name">${log.first_name} ${log.last_name}</div>
           <div class="log-time">${formatTime(log.timestamp)}</div>
           <div class="log-department">Grade ${log.grade} - ${log.strandOrSec}</div>
         </div>
@@ -249,6 +268,291 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadLogs);
+  </script>
+
+  <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const codeTypeRadios = document.querySelectorAll('input[name="codeType"]');
+      const scannerTypeRadios = document.querySelectorAll('input[name="scannerType"]');
+      const scannerOptions = document.getElementById('scannerOptions');
+      const manualCodeInput = document.getElementById('manualCodeInput');
+      const scanBtn = document.getElementById('scanBtn');
+      const qrModal = document.getElementById("qrModal");
+      const readerElement = document.getElementById("reader");
+      let scanner;
+      // Automatically start inline scanner (reader2) if needed
+      const inlineScannerElement = document.getElementById("reader2");
+      const inlineQrWrapper = document.getElementById("inlineQrScanner");
+      let inlineScanner;
+      let lastScannedCode = null;
+      let lastScannedTime = 0;
+      let scanningLocked = false;
+      let capturedPhotoBlob = null;
+
+      function updateUI() {
+        const selectedCodeType = document.querySelector('input[name="codeType"]:checked').value;
+
+        if (selectedCodeType === 'input') {
+          scannerOptions.style.display = 'none';
+          manualCodeInput.style.display = 'block';
+        } else {
+          scannerOptions.style.display = 'flex';
+          manualCodeInput.style.display = 'none';
+          updateScanButtonState();
+        }
+      }
+
+      function updateScanButtonState() {
+        const selectedScannerType = document.querySelector('input[name="scannerType"]:checked').value;
+      }
+
+      codeTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateUI);
+      });
+
+      scannerTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateScanButtonState);
+      });
+
+      scanBtn.addEventListener('click', async () => {
+        const selectedScannerType = document.querySelector('input[name="scannerType"]:checked').value;
+
+        if (selectedScannerType === 'rfid') {
+          toastr.info("RFID scanning is not implemented yet.");
+          return;
+        }
+
+        if (selectedScannerType === 'qr') {
+          await inlineScanner.stop();
+          qrModal.classList.add("show");
+
+          setTimeout(() => {
+            scanner = new Html5Qrcode("reader");
+            scanner.start(
+              { facingMode: "environment" },
+              {
+                fps: 10,
+                qrbox: 250
+              },
+              (decodedText) => {
+                document.getElementById("qrCodeValue").value = decodedText;
+                scanner.stop().then(() => {
+                  qrModal.classList.remove("show");
+                  toastr.success("Successfully scanned code.");
+                  document.getElementById("scanSound").play();
+                  console.log("Scanned QR Code:", decodedText);
+                  readerElement.innerHTML = "";
+
+                  // Restart inline scanner
+                  setTimeout(() => {
+                    startInlineScanner();
+                  }, 500);
+                });
+              },
+              (err) => { }
+            );
+          }, 300);
+        }
+      });
+
+      document.getElementById("closeQrModal").addEventListener("click", async () => {
+        qrModal.classList.remove("show");
+        if (scanner) {
+          await scanner.stop();
+          readerElement.innerHTML = "";
+        }
+
+        // Restart inline scanner
+        setTimeout(() => {
+          startInlineScanner();
+        }, 500);
+      });
+
+      updateUI(); // Initialize UI on page load
+
+      const registerForm = document.getElementById('registerForm');
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const codeType = document.querySelector('input[name="codeType"]:checked').value;
+        const rfidCode = codeType === 'input'
+          ? manualCodeInput.value
+          : document.getElementById("qrCodeValue").value;
+
+        if (!rfidCode) {
+          toastr.error('Please enter or scan a code.');
+          return;
+        }
+
+        const selectedScannerType = document.querySelector('input[name="scannerType"]:checked').value;
+        if (codeType != 'input' && selectedScannerType === 'rfid') {
+          toastr.info("RFID scanning is not implemented yet.");
+          return;
+        }
+
+        const formData = {
+          first_name: registerForm[0].value,
+          middle_name: registerForm[1].value,
+          last_name: registerForm[2].value,
+          age: registerForm[3].value,
+          gender: registerForm[4].value,
+          grade: registerForm[5].value,
+          section: registerForm[6].value,
+          contact: registerForm[7].value,
+          address: registerForm[8].value,
+          guardian: registerForm[9].value,
+          rfid_code: rfidCode
+        };
+
+        const payload = new FormData();
+        payload.append("data", JSON.stringify(formData));
+        if (capturedPhotoBlob) {
+          payload.append("photo", capturedPhotoBlob, `${formData.first_name}_${formData.last_name}_${formData.age}.jpg`);
+        }
+
+        try {
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            body: payload
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            toastr.success(result.message);
+            registerForm.reset();
+            qrModal.classList.remove("show");
+            document.getElementById("reader").innerHTML = "";
+            document.getElementById('registerModal').classList.remove('show');
+          } else {
+            toastr.error(result.error || 'Registration failed.');
+          }
+        } catch (err) {
+          toastr.error('Something went wrong.');
+          console.error(err);
+        }
+      });
+
+      const takeSnapshotBtn = document.getElementById('takeSnapshot');
+      const video = document.getElementById('webcam');
+      const canvas = document.getElementById('snapshotCanvas');
+      let isPhotoTaken = false;
+
+      // Start webcam stream
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => { console.warn('Webcam not available:', err); });
+
+      takeSnapshotBtn.addEventListener('click', () => {
+        if (!isPhotoTaken) {
+          // Take photo
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+
+          // Convert to blob for upload
+          canvas.toBlob(blob => {
+            capturedPhotoBlob = blob;
+            toastr.success("Photo captured!");
+          }, 'image/jpeg');
+
+          // Hide video, show canvas
+          video.style.display = 'none';
+          canvas.style.display = 'block';
+
+          takeSnapshotBtn.textContent = 'Retake Photo';
+          isPhotoTaken = true;
+        } else {
+          // Retake photo: show video again
+          video.style.display = 'block';
+          canvas.style.display = 'none';
+
+          takeSnapshotBtn.textContent = 'Take Photo';
+          isPhotoTaken = false;
+        }
+      });
+
+      // Reset scanner memory every 30 minutes
+      setInterval(() => {
+        lastScannedCode = null;
+        lastScannedTime = 0;
+        scanningLocked = false;
+        console.log("Scanner memory reset.");
+      }, 30 * 60 * 1000);
+
+      function startInlineScanner() {
+        inlineQrWrapper.style.display = "block";
+        inlineScanner = new Html5Qrcode("reader2");
+        inlineScanner.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: 250
+          },
+          async (decodedText) => {
+            const now = Date.now();
+
+            // Prevent any scanning while locked
+            if (scanningLocked) return;
+
+            if (decodedText !== lastScannedCode) {
+              lastScannedCode = decodedText;
+              lastScannedTime = now;
+              scanningLocked = true; // 🔒 lock scanner
+
+              document.getElementById("qrCodeValue").value = decodedText;
+              console.log("Scanned QR Code:", decodedText);
+
+              try {
+                const response = await fetch("/api/log", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    rfid: decodedText
+                  }),
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                  console.error("API Error:", result.error);
+                  toastr.error("Unidentified code or not registered.");
+                  document.getElementById("scanSound").play();
+                } else {
+                  toastr.success(`Successfully logged as ${result.status}`);
+                  document.getElementById("scanSound").play();
+                  await loadLogs();
+                }
+              } catch (error) {
+                console.error("Fetch error:", error);
+                toastr.error("API request failed.");
+              }
+
+              // Allow rescanning of same code after 5 seconds
+              setTimeout(() => {
+                scanningLocked = false;
+              }, 1000);
+
+            } else if (now - lastScannedTime >= 2000) {
+              toastr.info("Already scanned.");
+              document.getElementById("scanSoundError").play();
+              lastScannedTime = now; // update timestamp to avoid flooding
+            }
+          },
+          (err) => {
+            // error callback (optional)
+          }
+        );
+      }
+
+      // Restart inline scanner
+      setTimeout(() => {
+        startInlineScanner();
+      }, 500);
+
+    });
   </script>
 </body>
 
