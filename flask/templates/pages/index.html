@@ -85,32 +85,32 @@
       <div class="student-section">
         <div class="student-card">
           <div class="student-photo-container">
-            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Student" class="student-photo" />
-            <div class="photo-status">✓</div>
+            <img src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Student" class="student-photo" />
+            <div class="photo-status">-</div>
           </div>
 
           <div class="student-info">
-            <h1 class="student-name">Maria Santos</h1>
+            <h1 class="student-name" id="studentName">No Student Selected</h1>
 
             <div class="info-grid">
               <div class="info-item">
                 <div class="info-label">Student ID</div>
-                <div class="info-value">2025-10036</div>
+                <div class="info-value" id="studentId">N/A</div>
               </div>
 
               <div class="info-item">
-                <div class="info-label">Department</div>
-                <div class="info-value">IRED - Senior High</div>
+                <div class="info-label">Grade Level</div>
+                <div class="info-value" id="studentLevel">N/A</div>
               </div>
 
               <div class="info-item">
                 <div class="info-label">Guardian</div>
-                <div class="info-value">Juan Santos</div>
+                <div class="info-value" id="studentGuardian">N/A</div>
               </div>
 
               <div class="info-item">
                 <div class="info-label">Contact</div>
-                <div class="info-value">0917-123-4567</div>
+                <div class="info-value" id="studentContact">N/A</div>
               </div>
             </div>
           </div>
@@ -146,57 +146,7 @@
         <div class="panel-subtitle">Live attendance monitoring</div>
       </div>
 
-      <div class="logs-container">
-        <div class="log-entry">
-          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" class="log-avatar" />
-          <div class="log-info">
-            <div class="log-name">Ryan Cruz</div>
-            <div class="log-time">Today, 6:58 AM</div>
-            <div class="log-department">Grade 12 - STEM</div>
-          </div>
-          <div class="log-status status-in">IN</div>
-        </div>
-
-        <div class="log-entry">
-          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Student" class="log-avatar" />
-          <div class="log-info">
-            <div class="log-name">Angela Torres</div>
-            <div class="log-time">Today, 7:01 AM</div>
-            <div class="log-department">Grade 11 - ABM</div>
-          </div>
-          <div class="log-status status-in">IN</div>
-        </div>
-
-        <div class="log-entry">
-          <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Student" class="log-avatar" />
-          <div class="log-info">
-            <div class="log-name">Mark Johnson</div>
-            <div class="log-time">Yesterday, 3:05 PM</div>
-            <div class="log-department">Grade 12 - HUMSS</div>
-          </div>
-          <div class="log-status status-out">OUT</div>
-        </div>
-
-        <div class="log-entry">
-          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Student" class="log-avatar" />
-          <div class="log-info">
-            <div class="log-name">Sarah Lim</div>
-            <div class="log-time">Yesterday, 3:02 PM</div>
-            <div class="log-department">Grade 11 - GAS</div>
-          </div>
-          <div class="log-status status-out">OUT</div>
-        </div>
-
-        <div class="log-entry">
-          <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Student" class="log-avatar" />
-          <div class="log-info">
-            <div class="log-name">Carlos Mendoza</div>
-            <div class="log-time">Yesterday, 2:58 PM</div>
-            <div class="log-department">Grade 12 - TVL</div>
-          </div>
-          <div class="log-status status-out">OUT</div>
-        </div>
-      </div>
+      <div class="logs-container" id="logsContainer"></div>
     </div>
   </div>
 
@@ -209,13 +159,96 @@
     window.addEventListener('DOMContentLoaded', () => {
       const registerForm = document.getElementById('registerForm');
 
-      registerForm.addEventListener('submit', function (e) {
+      registerForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-        toastr.success('Registration submitted!');
-        registerForm.reset();
-        document.getElementById('registerModal').classList.remove('show');
+
+        const formData = {
+          full_name: registerForm[0].value,
+          age: registerForm[1].value,
+          gender: registerForm[2].value,
+          grade: registerForm[3].value,
+          section: registerForm[4].value,
+          contact: registerForm[5].value,
+          address: registerForm[6].value,
+          guardian: registerForm[7].value,
+          rfid_code: registerForm[8].value
+        };
+
+        try {
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            toastr.success(result.message);
+            registerForm.reset();
+            document.getElementById('registerModal').classList.remove('show');
+          } else {
+            toastr.error(result.error || 'Registration failed.');
+          }
+        } catch (err) {
+          toastr.error('Something went wrong.');
+          console.error(err);
+        }
       });
     });
+  </script>
+  <script>
+    async function loadLogs() {
+      const res = await fetch('/api/logs');
+      const logs = await res.json();
+
+      // Sort logs descending by timestamp to get the latest entry
+      logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const latestLog = logs[0];
+
+      // Update student section with latest log
+      if (latestLog) {
+        document.querySelector('.student-photo').src =
+          latestLog.gender === 'female'
+            ? 'https://randomuser.me/api/portraits/women/65.jpg'
+            : 'https://randomuser.me/api/portraits/men/65.jpg';
+
+        document.querySelector('#studentName').textContent = latestLog.full_name;
+        document.querySelector('#studentId').textContent = latestLog.student_id;
+        document.querySelector('#studentLevel').textContent = `${latestLog.grade} - ${latestLog.strandOrSec}`;
+        document.querySelector('#studentGuardian').textContent = latestLog.guardian;
+        document.querySelector('#studentContact').textContent = latestLog.contact;
+      }
+
+      // Update logs list
+      const logsContainer = document.getElementById('logsContainer');
+      logsContainer.innerHTML = '';
+
+      logs.forEach(log => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+
+        entry.innerHTML = `
+        <img src="${log.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="Student" class="log-avatar" />
+        <div class="log-info">
+          <div class="log-name">${log.full_name}</div>
+          <div class="log-time">${formatTime(log.timestamp)}</div>
+          <div class="log-department">Grade ${log.grade} - ${log.strandOrSec}</div>
+        </div>
+        <div class="log-status ${log.status === 'IN' ? 'status-in' : 'status-out'}">${log.status}</div>
+      `;
+
+        logsContainer.appendChild(entry);
+      });
+    }
+
+    function formatTime(isoString) {
+      if (!isoString) return 'Unknown time';
+      const date = new Date(isoString);
+      return `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadLogs);
   </script>
 </body>
 
