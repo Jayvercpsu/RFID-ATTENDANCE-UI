@@ -1,0 +1,7 @@
+Flask==2.2.5
+Werkzeug==2.2.2
+MarkupSafe==2.1.1
+Flask-Babel==4.0.0
+python-dotenv==1.0.1
+user-agents==2.2.0
+requests==2.32.3
