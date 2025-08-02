@@ -2,4 +2,4 @@
 
 
 # RUN COMMAND
-- start-local
+- make start-local
