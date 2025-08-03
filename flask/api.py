@@ -82,6 +82,36 @@ def delete_student_by_rfid(rfid):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@api_bp.route('/api/students/<rfid>', methods=['PUT'])
+def update_student_by_rfid(rfid):
+    if not os.path.exists(STUDENT_FILE):
+        return jsonify({'error': 'students.json not found'}), 404
+
+    try:
+        updated_data = request.json
+
+        with open(STUDENT_FILE, 'r') as f:
+            students = json.load(f)
+
+        student_found = False
+        for student in students:
+            if student.get('rfid') == rfid or student.get('rfid_code') == rfid:
+                student.update(updated_data)
+                student_found = True
+                break
+
+        if not student_found:
+            return jsonify({'error': 'Student not found'}), 404
+
+        with open(STUDENT_FILE, 'w') as f:
+            json.dump(students, f, indent=2)
+
+        return jsonify({'message': 'Student updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     log_file_path = get_student_file_path()

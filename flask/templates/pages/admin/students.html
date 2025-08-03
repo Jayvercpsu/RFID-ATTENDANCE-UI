@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <title>RFID Attendance - Students</title>
 </head>
@@ -16,6 +17,32 @@
 
     <!-- sidebar -->
     {% include('pages/admin/header-sections/sidebar.html') %}
+
+<div id="alertBox" style="
+  position: fixed;
+  top: 20px;
+  right: -400px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  transition: right 0.5s ease, opacity 0.5s ease;
+  z-index: 9999;
+  opacity: 0;
+">
+  <span id="alertMessage">Message</span>
+  <div id="alertProgress" style="
+    height: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    width: 0%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transition: width 4s linear;
+  "></div>
+</div>
 
   <section class="dashboard">
     <div class="top">

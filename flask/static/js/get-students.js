@@ -10,40 +10,93 @@ $(document).ready(function () {
 
       data.forEach(student => {
         const row = document.createElement('tr');
-        row.setAttribute('data-rfid', student.rfid || student.rfid_code); // Make rows targetable
+        row.setAttribute('data-rfid', student.rfid || student.rfid_code);
 
         row.innerHTML = `
-    <td>${student.first_name || ''}</td>
-    <td>${student.middle_name || ''}</td>
-    <td>${student.last_name || ''}</td>
-    <td>${student.age || ''}</td>
-    <td>${student.gender || ''}</td>
-    <td>${student.grade || ''}</td>
-    <td>${student.strandOrSec || student.section || ''}</td>
-    <td>${student.contact || ''}</td>
-    <td>${student.address || ''}</td>
-    <td>${student.guardian || ''}</td>
-    <td>${student.rfid || student.rfid_code || ''}</td>
-    <td>
-      ${student.avatar
+  <td class="col-first_name">${student.first_name || ''}</td>
+  <td class="col-middle_name">${student.middle_name || ''}</td>
+  <td class="col-last_name">${student.last_name || ''}</td>
+  <td class="col-age">${student.age || ''}</td>
+  <td class="col-gender">${student.gender || ''}</td>
+  <td class="col-grade">${student.grade || ''}</td>
+  <td class="col-section">${student.strandOrSec || student.section || ''}</td>
+  <td class="col-contact">${student.contact || ''}</td>
+  <td class="col-address">${student.address || ''}</td>
+  <td class="col-guardian">${student.guardian || ''}</td>
+  <td class="col-rfid">${student.rfid || student.rfid_code || ''}</td>
+  <td class="col-avatar">
+    ${student.avatar
             ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
             : 'N/A'}
-    </td>
-  <td style="display: flex; gap: 5px;">
-    <button 
-      onclick='openEditPopup(${JSON.stringify(student)})' 
-      style="padding: 6px 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-      Edit
-    </button>
-    <button 
-      onclick='openDeletePopup("${student.rfid || student.rfid_code}")' 
-      style="padding: 6px 10px; background-color: #e53935; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-      Delete
-    </button>
   </td>
+ <td style="position: relative;">
+  <div style="position: relative; display: inline-block;">
+    <!-- Three Dots Button -->
+    <button onclick="toggleMenu(this)" style="
+      background: none; 
+      border: none; 
+      font-size: 20px; 
+      cursor: pointer;
+    ">
+      <i class="fas fa-ellipsis-v"></i>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div class="dropdown-menu" style="
+      display: none;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      position: absolute;
+      top: -5px;
+      right: 28px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 140px;
+      padding: 4px 0;
+    ">
+      <button onclick='openEditPopup(${JSON.stringify(student)})' style="
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: right;
+        cursor: pointer;
+        font-size: 14px;
+      ">
+        <span>Edit</span>
+        <i class="fas fa-pen"></i>
+      </button>
+      <button onclick='openDeletePopup("${student.rfid || student.rfid_code}")' style="
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: right;
+        cursor: pointer;
+        font-size: 14px;
+      ">
+        <span>Delete</span>
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  </div>
+</td>
   `;
         tbody.appendChild(row);
       });
+
 
 
       if (studentsTable) {
@@ -107,6 +160,116 @@ $(document).ready(function () {
 
 });
 
+function toggleMenu(button) {
+  const menu = button.nextElementSibling;
+  const isVisible = menu.style.display === 'block';
+
+  // Close any other open menus
+  document.querySelectorAll('.dropdown-menu').forEach(el => {
+    el.style.display = 'none';
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(-5px)';
+  });
+
+  if (!isVisible) {
+    menu.style.display = 'block';
+    requestAnimationFrame(() => {
+      menu.style.opacity = 1;
+      menu.style.transform = 'translateY(0)';
+    });
+  }
+}
+// Optional: Close dropdown when clicking outside
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('td')) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      menu.style.display = 'none';
+      menu.style.opacity = 0;
+      menu.style.transform = 'translateY(-5px)';
+    });
+  }
+});
+
+document.getElementById('editForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const rfid = document.getElementById('edit_rfid').value;
+  const updatedStudent = {
+    first_name: document.getElementById('edit_first_name').value,
+    middle_name: document.getElementById('edit_middle_name').value,
+    last_name: document.getElementById('edit_last_name').value,
+    age: document.getElementById('edit_age').value,
+    gender: document.getElementById('edit_gender').value,
+    grade: document.getElementById('edit_grade').value,
+    section: document.getElementById('edit_section').value,
+    contact: document.getElementById('edit_contact').value,
+    address: document.getElementById('edit_address').value,
+    guardian: document.getElementById('edit_guardian').value
+  };
+
+  try {
+    const response = await fetch(`/api/students/${rfid}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedStudent)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showAlert('Student updated successfully.');
+      closeEditPopup();
+
+      // Find the updated row
+      const row = document.querySelector(`tr[data-rfid="${rfid}"]`);
+      if (row) {
+        // Update each cell (make sure your HTML <td>s have matching classes)
+        row.querySelector('.col-first_name').textContent = updatedStudent.first_name;
+        row.querySelector('.col-middle_name').textContent = updatedStudent.middle_name;
+        row.querySelector('.col-last_name').textContent = updatedStudent.last_name;
+        row.querySelector('.col-age').textContent = updatedStudent.age;
+        row.querySelector('.col-gender').textContent = updatedStudent.gender;
+        row.querySelector('.col-grade').textContent = updatedStudent.grade;
+        row.querySelector('.col-section').textContent = updatedStudent.section;
+        row.querySelector('.col-contact').textContent = updatedStudent.contact;
+        row.querySelector('.col-address').textContent = updatedStudent.address;
+        row.querySelector('.col-guardian').textContent = updatedStudent.guardian;
+      }
+    } else {
+      showAlert(result.error || 'Update failed.', '#f44336');
+    }
+  } catch (error) {
+    showAlert('Error updating student: ' + error.message, '#f44336');
+  }
+});
+
+function showAlert(message, color = '#4CAF50') {
+  const alertBox = document.getElementById('alertBox');
+  const alertMessage = document.getElementById('alertMessage');
+  const progressBar = document.getElementById('alertProgress');
+
+  alertMessage.textContent = message;
+  alertBox.style.backgroundColor = color;
+  alertBox.style.right = '20px';
+  alertBox.style.opacity = '1';
+
+  // Reset progress
+  progressBar.style.transition = 'none';
+  progressBar.style.width = '0%';
+
+  // Trigger progress animation after short delay
+  setTimeout(() => {
+    progressBar.style.transition = 'width 4s linear';
+    progressBar.style.width = '100%';
+  }, 50);
+
+  // Hide after 4 seconds
+  setTimeout(() => {
+    alertBox.style.opacity = '0';
+    alertBox.style.right = '-400px';
+  }, 4000);
+}
+
 function openEditPopup(student) {
   // Always fetch the latest data from the server
   fetch('/api/students')
@@ -141,7 +304,6 @@ function openEditPopup(student) {
       alert("Error fetching student data. See console for details.");
     });
 }
-
 
 function closeEditPopup() {
   $('#editPopup').addClass('hidden');
