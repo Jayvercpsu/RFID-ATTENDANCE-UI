@@ -52,7 +52,7 @@ def register_student():
         json.dump(students, f, indent=2)
 
     return {"message": "Student registered successfully!"}
-    
+
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
     student_file = get_student_file_path()
@@ -74,6 +74,80 @@ def get_logs():
             student["avatar"] = None
 
     return jsonify(students)
+
+@api_bp.route('/api/students', methods=['GET'])
+def get_students():
+    if not os.path.exists(STUDENT_FILE):
+        return jsonify([])
+
+    with open(STUDENT_FILE, 'r') as f:
+        students = json.load(f)
+
+    # Attach avatar URLs if photo exists
+    for student in students:
+        photo_filename = student.get("photo")
+        if photo_filename:
+            student["avatar"] = url_for('api.get_student_photo', filename=photo_filename, _external=True)
+        else:
+            student["avatar"] = None
+
+    return jsonify(students)
+
+@api_bp.route('/api/students/<rfid>', methods=['DELETE'])
+def delete_student_by_rfid(rfid):
+    if not os.path.exists(STUDENT_FILE):
+        return jsonify({'error': 'students.json not found'}), 404
+
+    try:
+        with open(STUDENT_FILE, 'r') as f:
+            students = json.load(f)
+
+        # Filter out the student with matching RFID
+        updated_students = [
+            s for s in students
+            if s.get('rfid') != rfid and s.get('rfid_code') != rfid
+        ]
+
+        if len(updated_students) == len(students):
+            return jsonify({'error': 'Student not found'}), 404
+
+        with open(STUDENT_FILE, 'w') as f:
+            json.dump(updated_students, f, indent=2)
+
+        return jsonify({'message': 'Student deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/api/students/<rfid>', methods=['PUT'])
+def update_student_by_rfid(rfid):
+    if not os.path.exists(STUDENT_FILE):
+        return jsonify({'error': 'students.json not found'}), 404
+
+    try:
+        updated_data = request.json
+
+        with open(STUDENT_FILE, 'r') as f:
+            students = json.load(f)
+
+        student_found = False
+        for student in students:
+            if student.get('rfid') == rfid or student.get('rfid_code') == rfid:
+                student.update(updated_data)
+                student_found = True
+                break
+
+        if not student_found:
+            return jsonify({'error': 'Student not found'}), 404
+
+        with open(STUDENT_FILE, 'w') as f:
+            json.dump(students, f, indent=2)
+
+        return jsonify({'message': 'Student updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
@@ -169,6 +243,7 @@ def log_attendance():
             "message": f"Log entry saved successfully as {status}",
             "status": status
         }), 200
+        
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -196,7 +271,7 @@ def admin_login():
         return resp, 200
     else:
         return jsonify({"success": False, "message": "Incorrect credentials"}), 401
-
+    
 @api_bp.route('/api/admin-reset', methods=['POST'])
 def reset_admin_credentials():
     try:
