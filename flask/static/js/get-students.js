@@ -18,7 +18,7 @@ $(document).ready(function () {
                     <td>${student.gender || ''}</td>
                     <td>${student.grade || ''}</td>
                     <td>${student.strandOrSec || ''}</td>
-          a          <td>${student.contact || ''}</td>
+                    <td>${student.contact || ''}</td>
                     <td>${student.address || ''}</td>
                     <td>${student.guardian || ''}</td>
                     <td>${student.rfid || student.rfid_code || ''}</td>
@@ -108,7 +108,7 @@ function openEditPopup(student) {
   $('#edit_guardian').val(student.guardian);
   $('#editPopup').removeClass('hidden');
 }
-
+ 
 function closeEditPopup() {
   $('#editPopup').addClass('hidden');
 }

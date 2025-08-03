@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
 
   <title>RFID Attendance - Students</title>
 </head>
@@ -124,11 +124,18 @@
   </div>
 </div>
 
-        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+<script>
+  $(document).ready(function () {
+    $('#studentsTable').DataTable({
+      scrollX: true,
+      responsive: true
+    });
+  });
+</script>
+<script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
-     <script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
-
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
