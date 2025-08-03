@@ -1,7 +1,7 @@
 # Create a Blueprint for pages
 from flask import Blueprint, render_template
 
-from config import ADMIN_DASHBOARD_PAGE, ADMIN_LOGIN_PAGE, ADMIN_STUDENTS_PAGE, MAIN_PAGE
+from config import ADMIN_DASHBOARD_PAGE, ADMIN_LOGIN_PAGE, ADMIN_STUDENTS_PAGE, MAIN_PAGE, ADMIN_ATTENDANCE_LOGS_PAGE, ADMIN_EMPLOYEE_LOGS_PAGE
 
 
 pages_bp = Blueprint("pages", __name__)
@@ -25,3 +25,7 @@ def admin_students():
 @pages_bp.route("/admin/attendance-logs")
 def admin_attendance_logs():
     return render_template(ADMIN_ATTENDANCE_LOGS_PAGE)
+
+@pages_bp.route("/admin/employee-logs")
+def admin_employee_logs():
+    return render_template(ADMIN_EMPLOYEE_LOGS_PAGE)

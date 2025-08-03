@@ -141,27 +141,30 @@ def log_attendance():
         # Determine new status: alternate IN/OUT
         status = "IN" if len(todays_logs) % 2 == 0 else "OUT"
 
-# Handle photo and avatar
+        # Handle photo and avatar
         photo_filename = matched_student.get("photo")
         avatar_url = url_for('api.get_student_photo', filename=photo_filename, _external=True) if photo_filename else None
 
         # Build new log entry
         log_entry = {
-            "student_id": rfid_code,
-            "rfid": rfid_code,
-            "timestamp": datetime.now().isoformat(), 
-            "status": status,
-            "first_name": matched_student.get("first_name", ""),
-            "middle_name": matched_student.get("middle_name", ""),
-            "last_name": matched_student.get("last_name", ""),
-            "grade": matched_student.get("grade", ""),
-            "strandOrSec": matched_student.get("section", ""),
-            "gender": matched_student.get("gender", ""),
-            "guardian": matched_student.get("guardian", ""),
-            "contact": matched_student.get("contact", ""),
-            "photo": photo_filename,
-            "avatar": avatar_url
+        "student_id": rfid_code,
+        "rfid": rfid_code,
+        "timestamp": datetime.now().isoformat(),
+        "status": status,
+        "first_name": matched_student.get("first_name", ""),
+        "middle_name": matched_student.get("middle_name", ""),
+        "last_name": matched_student.get("last_name", ""),
+        "age": matched_student.get("age", ""),  # ✅ ADD THIS LINE
+        "grade": matched_student.get("grade", ""),
+        "strandOrSec": matched_student.get("section", ""),
+        "gender": matched_student.get("gender", ""),
+        "guardian": matched_student.get("guardian", ""),
+        "contact": matched_student.get("contact", ""),
+        "address": matched_student.get("address", ""),
+        "photo": photo_filename,
+        "avatar": avatar_url
         }
+
 
         # Append log and save
         logs.append(log_entry)

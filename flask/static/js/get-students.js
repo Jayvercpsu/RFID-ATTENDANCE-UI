@@ -14,22 +14,23 @@ $(document).ready(function () {
                     <td>${student.age || ''}</td>
                     <td>${student.gender || ''}</td>
                     <td>${student.grade || ''}</td>
-                    <td>${student.section || student.strandOrSec || ''}</td>
+                    <td>${student.strandOrSec || ''}</td>
                     <td>${student.contact || ''}</td>
                     <td>${student.address || ''}</td>
                     <td>${student.guardian || ''}</td>
-                    <td>${student.rfid_code || student.rfid || ''}</td>
+                    <td>${student.rfid || student.rfid_code || ''}</td>
                     <td>
-                    ${student.avatar
-                        ? `<img src="${student.avatar}" alt="Student Photo" width="50" />`
-                        : 'N/A'}
+                        ${student.avatar
+                            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
+                            : 'N/A'}
                     </td>
                 `;
                 tbody.appendChild(row);
             });
 
-
-            $('#studentsTable').DataTable();
+            $('#studentsTable').DataTable({
+                responsive: true
+            });
         })
         .catch(err => {
             console.error('Failed to fetch student data:', err);
