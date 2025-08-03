@@ -8,40 +8,28 @@ $(document).ready(function () {
       const tbody = document.getElementById('studentsBody');
       tbody.innerHTML = '';
 
-      data.forEach(student => {
-        const row = document.createElement('tr');
-        row.setAttribute('data-rfid', student.rfid);
-
-        row.innerHTML = `
-          <td>${student.first_name || ''}</td>
-          <td>${student.middle_name || ''}</td>
-          <td>${student.last_name || ''}</td>
-          <td>${student.age || ''}</td>
-          <td>${student.gender || ''}</td>
-          <td>${student.grade || ''}</td>
-          <td>${student.section || student.strandOrSec || ''}</td>
-          <td>${student.contact || ''}</td>
-          <td>${student.address || ''}</td>
-          <td>${student.guardian || ''}</td>
-          <td>${student.rfid || ''}</td>
-          <td>${student.avatar ? `<img src="${student.avatar}" width="50" />` : 'N/A'}</td>
-          <td style="display: flex; gap: 3px; justify-content: center; align-items: center;">
-            <button 
-              onclick='openEditPopup(${JSON.stringify(student)})'
-              title="Edit student"
-              style="padding: 6px 14px; font-size: 14px; border-radius: 4px; border: 1px solid #3b82f6; background-color: #0e4bf1; color: white; cursor: pointer;">
-              Edit
-            </button>
-            <button 
-              onclick='openDeletePopup("${student.rfid || student.rfid_code}")'
-              title="Delete student"
-              style="padding: 6px 14px; font-size: 14px; border-radius: 4px; border: 1px solid #ef4444; background-color: #ef4444; color: white; cursor: pointer;">
-              Delete
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
+            data.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.first_name || ''}</td>
+                    <td>${student.middle_name || ''}</td>
+                    <td>${student.last_name || ''}</td>
+                    <td>${student.age || ''}</td>
+                    <td>${student.gender || ''}</td>
+                    <td>${student.grade || ''}</td>
+                    <td>${student.strandOrSec || ''}</td>
+                    <td>${student.contact || ''}</td>
+                    <td>${student.address || ''}</td>
+                    <td>${student.guardian || ''}</td>
+                    <td>${student.rfid || student.rfid_code || ''}</td>
+                    <td>
+                        ${student.avatar
+                            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
+                            : 'N/A'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
 
       if (studentsTable) {
         studentsTable.clear().destroy(); // Reset if already initialized

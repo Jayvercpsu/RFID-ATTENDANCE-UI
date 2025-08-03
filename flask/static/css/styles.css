@@ -784,3 +784,7 @@ body {
 #reader video, #reader2 video, #webcam {
   transform: scaleX(-1);
 }
+
+.toast {
+  opacity: 1 !important;
+}
