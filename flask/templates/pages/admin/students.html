@@ -12,7 +12,7 @@
   <title>RFID Attendance - Students</title>
 </head>
 <body>
-    
+
     <!-- sidebar -->
     {% include('pages/admin/header-sections/sidebar.html') %}
 
@@ -50,21 +50,8 @@
                 <th>Photo</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Jayver</td>
-                <td>Primor</td>
-                <td>Algadipe</td>
-                <td>22</td>
-                <td>Male</td>
-                <td>test</td>
-                <td>test</td>
-                <td>09702005316</td>
-                <td>Brgy. Cabulihan Vallehermoso Negros Oriental</td>
-                <td>test</td>
-                <td>Student id</td>
-                <td><img src="{{ url_for('static', filename='images/Student_id.jpg') }}" alt="Student Photo" width="50" /></td>
-              </tr>
+            <tbody id="studentsBody">
+            <!-- Dynamically filled with JavaScript -->
             </tbody>
           </table>
         </div>
@@ -72,13 +59,10 @@
     </div>
   </section>
 
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      $('#studentsTable').DataTable();
-    });
-  </script>
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+     <script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
 
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>

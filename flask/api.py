@@ -149,7 +149,7 @@ def log_attendance():
         log_entry = {
             "student_id": rfid_code,
             "rfid": rfid_code,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat(), 
             "status": status,
             "first_name": matched_student.get("first_name", ""),
             "middle_name": matched_student.get("middle_name", ""),
