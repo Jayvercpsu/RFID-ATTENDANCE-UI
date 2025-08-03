@@ -22,13 +22,16 @@ def admin_dashboard():
     return render_template(ADMIN_DASHBOARD_PAGE)
 
 @pages_bp.route("/admin/students")
+@login_required_page
 def admin_students():
     return render_template(ADMIN_STUDENTS_PAGE)
 
 @pages_bp.route("/admin/attendance-logs")
+@login_required_page
 def admin_attendance_logs():
     return render_template(ADMIN_ATTENDANCE_LOGS_PAGE)
 
 @pages_bp.route("/admin/employee-logs")
+@login_required_page
 def admin_employee_logs():
     return render_template(ADMIN_EMPLOYEE_LOGS_PAGE)

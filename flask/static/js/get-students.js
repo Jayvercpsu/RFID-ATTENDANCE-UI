@@ -15,7 +15,7 @@ $(document).ready(function () {
                     <td>${student.gender || ''}</td>
                     <td>${student.grade || ''}</td>
                     <td>${student.strandOrSec || ''}</td>
-                    <td>${student.contact || ''}</td>
+          a          <td>${student.contact || ''}</td>
                     <td>${student.address || ''}</td>
                     <td>${student.guardian || ''}</td>
                     <td>${student.rfid || student.rfid_code || ''}</td>
