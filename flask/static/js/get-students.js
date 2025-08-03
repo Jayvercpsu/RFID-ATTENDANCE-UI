@@ -8,28 +8,43 @@ $(document).ready(function () {
       const tbody = document.getElementById('studentsBody');
       tbody.innerHTML = '';
 
-            data.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.first_name || ''}</td>
-                    <td>${student.middle_name || ''}</td>
-                    <td>${student.last_name || ''}</td>
-                    <td>${student.age || ''}</td>
-                    <td>${student.gender || ''}</td>
-                    <td>${student.grade || ''}</td>
-                    <td>${student.strandOrSec || ''}</td>
-                    <td>${student.contact || ''}</td>
-                    <td>${student.address || ''}</td>
-                    <td>${student.guardian || ''}</td>
-                    <td>${student.rfid || student.rfid_code || ''}</td>
-                    <td>
-                        ${student.avatar
-                            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
-                            : 'N/A'}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+      data.forEach(student => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-rfid', student.rfid || student.rfid_code); // Make rows targetable
+
+        row.innerHTML = `
+    <td>${student.first_name || ''}</td>
+    <td>${student.middle_name || ''}</td>
+    <td>${student.last_name || ''}</td>
+    <td>${student.age || ''}</td>
+    <td>${student.gender || ''}</td>
+    <td>${student.grade || ''}</td>
+    <td>${student.strandOrSec || student.section || ''}</td>
+    <td>${student.contact || ''}</td>
+    <td>${student.address || ''}</td>
+    <td>${student.guardian || ''}</td>
+    <td>${student.rfid || student.rfid_code || ''}</td>
+    <td>
+      ${student.avatar
+            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
+            : 'N/A'}
+    </td>
+  <td style="display: flex; gap: 5px;">
+    <button 
+      onclick='openEditPopup(${JSON.stringify(student)})' 
+      style="padding: 6px 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+      Edit
+    </button>
+    <button 
+      onclick='openDeletePopup("${student.rfid || student.rfid_code}")' 
+      style="padding: 6px 10px; background-color: #e53935; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+      Delete
+    </button>
+  </td>
+  `;
+        tbody.appendChild(row);
+      });
+
 
       if (studentsTable) {
         studentsTable.clear().destroy(); // Reset if already initialized
@@ -77,15 +92,13 @@ $(document).ready(function () {
           cells[8].textContent = updated.address;
           cells[9].textContent = updated.guardian;
 
-          // Update the onclick attribute for Edit button with the new data
-          const updatedData = JSON.stringify({
+          const editBtn = $(cells[12]).find('button')[0];
+          const updatedData = {
             ...updated,
             middle_name: updated.middle_name,
-            avatar: $(cells[11]).find('img').attr('src') || '',
-          });
-
-          const editBtn = $(cells[12]).find('button')[0];
-          editBtn.setAttribute('onclick', `openEditPopup(${updatedData})`);
+            avatar: $(cells[11]).find('img').attr('src') || ''
+          };
+          editBtn.setAttribute('onclick', `openEditPopup(${JSON.stringify(updatedData)})`);
         }
 
         closeEditPopup();
@@ -108,7 +121,7 @@ function openEditPopup(student) {
   $('#edit_guardian').val(student.guardian);
   $('#editPopup').removeClass('hidden');
 }
- 
+
 function closeEditPopup() {
   $('#editPopup').addClass('hidden');
 }

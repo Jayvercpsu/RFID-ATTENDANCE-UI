@@ -98,6 +98,8 @@ def delete_student(rfid):
         return jsonify({'error': str(e)}), 500
 
 
+
+
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     log_file_path = get_student_file_path()
