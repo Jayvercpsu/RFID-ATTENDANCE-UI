@@ -1,2 +1,6 @@
+local database path
+
 C:\Users\user\AppData\Roaming
-C:\Users\user\AppData\Roaming\CVE_ATTENDANCE
+C:\Users\user\AppData\Roaming\CVE_ATTENDANCE\logs.json
+C:\Users\user\AppData\Roaming\CVE_REGISTER\students.json
+C:\Users\user\AppData\Roaming\CVE_PHOTO\

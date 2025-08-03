@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+  <title>RFID Attendance - Students</title>
+</head>
+<body>
+
+    <!-- sidebar -->
+    {% include('pages/admin/header-sections/sidebar.html') %}
+
+  <section class="dashboard">
+    <div class="top">
+      <i class="uil uil-bars sidebar-toggle"></i>
+      <div class="search-box">
+        <i class="uil uil-search"></i>
+        <input type="text" placeholder="Search students..." />
+      </div>
+    </div>
+
+    <div class="dash-content">
+      <div class="overview">
+        <div class="title">
+          <i class="uil uil-users-alt"></i>
+          <span class="text">Student List</span>
+        </div>
+
+        <div class="table-container" style="overflow-x:auto;">
+          <table id="studentsTable" class="display">
+            <thead>
+              <tr>
+                <th>First Name</th>
+                <th>Middle Name</th>
+                <th>Last Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Grade</th>
+                <th>Section</th>
+                <th>Contact</th>
+                <th>Address</th>
+                <th>Guardian</th>
+                <th>RFID Code</th>
+                <th>Photo</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody">
+            <!-- Dynamically filled with JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+     <script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
+
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

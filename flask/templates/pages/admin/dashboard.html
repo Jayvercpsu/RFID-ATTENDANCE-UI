@@ -12,58 +12,9 @@
 </head>
 
 <body>
-  <nav>
-    <div class="logo-name">
-      <div class="logo">CVE</div>
-      <span class="logo_name">Colleges Inc.</span>
-    </div>
-    <div class="menu-items">
-      <ul class="nav-links">
-        <li>
-          <a href="#">
-            <i class="uil uil-estate"></i>
-            <span class="link-name">Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="uil uil-files-landscapes"></i>
-            <span class="link-name">Students</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="uil uil-chart"></i>
-            <span class="link-name">Attendance Logs</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="uil uil-setting"></i>
-            <span class="link-name">Settings</span>
-          </a>
-        </li>
-      </ul>
-
-      <ul class="logout-mode">
-        <li>
-          <a href="{{ url_for('api.admin_logout') }}">
-            <i class="uil uil-signout"></i>
-            <span class="link-name">Logout</span>
-          </a>
-        </li>
-        <li class="mode">
-          <a href="#">
-            <i class="uil uil-moon"></i>
-            <span class="link-name">Dark Mode</span>
-          </a>
-          <div class="mode-toggle">
-            <span class="switch"></span>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </nav>
+  
+   <!-- sidebar -->
+  {% include('pages/admin/header-sections/sidebar.html') %}
 
   <section class="dashboard">
     <div class="top">
@@ -115,7 +66,7 @@
             <span class="data-title">Student ID</span>
             <span class="data-list">20231001</span>
             <span class="data-list">20231002</span>
-            <span class="data-list">20231003</span>
+            <span class="data-list">20231003</span>  
           </div>
           <div class="data joined">
             <span class="data-title">Time In</span>
