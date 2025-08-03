@@ -226,11 +226,6 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("scanSound").play();
           console.log("Scanned QR Code:", decodedText);
           readerElement.innerHTML = "";
-
-          // Restart inline scanner
-          setTimeout(() => {
-            startInlineScanner();
-          }, 500);
         });
       },
       (err) => {}
@@ -253,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Prevent any scanning while locked
           if (scanningLocked) return;
 
-          if (decodedText !== lastScannedCode) {
+          if (decodedText) {
             lastScannedCode = decodedText;
             lastScannedTime = now;
             scanningLocked = true; // 🔒 lock scanner
@@ -275,10 +270,18 @@ document.addEventListener("DOMContentLoaded", () => {
               const result = await response.json();
               if (!response.ok) {
                 console.error("API Error:", result.error);
-                toastr.error("Unidentified code or not registered.");
-                document.getElementById("scanSound").play();
+
+                if (result.error && result.error.includes("Already")) {
+                  toastr.info(result.error);
+                } else {
+                  toastr.error("Unidentified code or not registered.");
+                }
+
+                document.getElementById("scanSoundError").play();
               } else {
-                toastr.success(`Successfully logged as ${result.status}`);
+                toastr.success(
+                  `Successfully logged ${result.status.toLowerCase()}`
+                );
                 document.getElementById("scanSound").play();
                 await loadLogs();
               }
@@ -291,11 +294,13 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
               scanningLocked = false;
             }, 1000);
-          } else if (now - lastScannedTime >= 2000) {
-            toastr.info("Already scanned.");
-            document.getElementById("scanSoundError").play();
-            lastScannedTime = now; // update timestamp to avoid flooding
           }
+
+          //   else if (now - lastScannedTime >= 2000) {
+          //     toastr.info("Already scanned.");
+          //     document.getElementById("scanSoundError").play();
+          //     lastScannedTime = now; // update timestamp to avoid flooding
+          //   }
         },
         (err) => {
           // error callback (optional)

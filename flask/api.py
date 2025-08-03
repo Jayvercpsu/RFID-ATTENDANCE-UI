@@ -118,8 +118,21 @@ def log_attendance():
             if log.get("rfid") == rfid_code and log.get("timestamp", "").startswith(today)
         ]
 
-        # Determine new status: alternate IN/OUT
-        status = "IN" if len(todays_logs) % 2 == 0 else "OUT"
+        # Group today's logs by status
+        today_in = any(log.get("status") == "IN" for log in todays_logs)
+        today_out = any(log.get("status") == "OUT" for log in todays_logs)
+
+        # Prevent more than one IN and OUT per day
+        if today_in and today_out:
+            return jsonify({"error": "Already timed in and out for today."}), 403
+
+        # Assign status based on today's logs
+        if not today_in:
+            status = "IN"
+        elif not today_out:
+            status = "OUT"
+        else:
+            return jsonify({"error": "Unable to determine status."}), 500
 
         # Handle photo and avatar
         photo_filename = matched_student.get("photo")
