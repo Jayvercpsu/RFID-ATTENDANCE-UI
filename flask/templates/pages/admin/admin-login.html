@@ -17,15 +17,20 @@
       <div class="subtitle">Colleges Inc. | Administrator Login</div>
     </div>
 
-    <form class="login-form" action="{{ url_for('pages.admin_dashboard') }}">
+    <form class="login-form" id="loginForm">
       <div class="form-group">
-        <label for="email">Username</label>
-        <input type="email" id="email" name="email" placeholder="Enter username" required />
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required />
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" placeholder="Enter password" required />
+      </div>
+
+      <div id="login-message" class="message-box hidden" style="text-align: center;">
+        <i id="message-icon" class="fas"></i>
+        <span id="message-text"></span>
       </div>
 
       <button type="submit" class="login-btn">
@@ -40,6 +45,68 @@
       </div>
     </form>
   </div>
+  <script>
+    const messageBox = document.getElementById('login-message');
+    const messageIcon = document.getElementById('message-icon');
+    const messageText = document.getElementById('message-text');
+    const form = document.getElementById('loginForm');
+    const inputs = form.querySelectorAll('input');
+    const loginBtn = form.querySelector('.login-btn');
+
+    // Hide message box when typing
+    inputs.forEach(input => {
+      input.addEventListener('input', () => {
+        messageBox.classList.add('hidden');
+      });
+    });
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      // Hide message + disable button
+      messageBox.classList.add('hidden');
+      loginBtn.disabled = true;
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        // Reset state
+        messageBox.classList.remove('success', 'error');
+        messageBox.classList.remove('hidden');
+
+        if (data.success) {
+          messageBox.classList.add('success');
+          messageIcon.className = 'fas fa-check-circle';
+          messageText.textContent = 'Login successful. Redirecting...';
+          setTimeout(() => {
+            window.location.href = "/admin/dashboard";
+          }, 1200);
+        } else {
+          messageBox.classList.add('error');
+          messageIcon.className = 'fas fa-exclamation-triangle';
+          messageText.textContent = data.message || 'Login failed. Try again.';
+        }
+      } catch (error) {
+        messageBox.classList.remove('hidden');
+        messageBox.classList.add('error');
+        messageIcon.className = 'fas fa-exclamation-triangle';
+        messageText.textContent = 'Something went wrong. Please try again.';
+      }
+
+      // Always re-enable button
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+    });
+  </script>
 </body>
 
 </html>

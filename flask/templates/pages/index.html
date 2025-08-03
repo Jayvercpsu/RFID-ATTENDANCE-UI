@@ -235,7 +235,7 @@
         document.querySelector('#studentName').textContent = latestLog.first_name + ' ' + latestLog.last_name;
         document.querySelector('#studentGender').textContent = latestLog.gender?.charAt(0).toUpperCase() + latestLog.gender?.slice(1) || 'N/A';
         document.querySelector('#studentLevel').textContent = `${latestLog.grade} - ${latestLog.strandOrSec}`;
-        document.querySelector('#studentStatus').textContent = latestLog == 'IN' ? 'Time In' : 'Time Out';
+        document.querySelector('#studentStatus').textContent = latestLog.status == 'IN' ? 'Time In' : 'Time Out';
         document.querySelector('#studentTime').textContent = formatTime(latestLog.timestamp);
       }
 

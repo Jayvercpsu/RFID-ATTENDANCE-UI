@@ -1,5 +1,6 @@
 # utils/path_utils.py
 import os
+import json
 
 def get_app_data_dir(app_name="CVE_REGISTER"):
     base_dir = os.getenv("APPDATA", os.path.expanduser("~"))
@@ -23,3 +24,9 @@ def get_photo_folder_path():
     path = os.path.join(os.getenv("APPDATA", os.path.expanduser("~")), "CVE_PHOTO")
     os.makedirs(path, exist_ok=True)
     return path
+
+def load_admin():
+    flask_dir = os.path.dirname(os.path.dirname(__file__))  
+    json_path = os.path.join(flask_dir, 'credentials', 'admin.json')
+    with open(json_path, 'r') as f:
+        return json.load(f)

@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask-related
+instance/
+*.db
+*.sqlite3
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+Pipfile.lock
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# PyInstaller build files
+*.spec
+
+# VS Code or other IDE settings
+.vscode/
+.idea/
+
+# Node modules (if you’re using npm for frontend stuff)
+node_modules/
