@@ -30,3 +30,9 @@ def load_admin():
     json_path = os.path.join(flask_dir, 'credentials', 'admin.json')
     with open(json_path, 'r') as f:
         return json.load(f)
+    
+def save_admin(data):
+    flask_dir = os.path.dirname(os.path.dirname(__file__))
+    json_path = os.path.join(flask_dir, 'credentials', 'admin.json')
+    with open(json_path, 'w') as f:
+        json.dump(data, f, indent=2)

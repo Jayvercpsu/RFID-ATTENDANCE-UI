@@ -5,7 +5,7 @@ import json
 
 import jwt
 from utils.auth_utils import SECRET_KEY
-from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin
+from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin, save_admin
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
@@ -15,6 +15,43 @@ STUDENT_FILE = os.path.join(get_app_data_dir(), 'students.json')
 def get_student_photo(filename):
     photo_dir = get_photo_folder_path()  # This returns APPDATA/CVE_PHOTO
     return send_from_directory(photo_dir, filename)
+
+@api_bp.route('/api/register', methods=['POST'])
+def register_student():
+    data = request.form.get('data')
+    if not data:
+        return {"error": "Missing data"}, 400
+    student_data = json.loads(data)
+
+    photo_file = request.files.get('photo')
+    if photo_file:
+        photo_folder = get_photo_folder_path()
+        filename = secure_filename(f"{student_data['rfid_code']}.jpg")
+        filepath = os.path.join(photo_folder, filename)
+        photo_file.save(filepath)
+        student_data['photo'] = filename
+    else:
+        student_data['photo'] = None
+# testing comment
+    # Save to students.json logic
+    students_path = get_app_data_dir("CVE_REGISTER")
+    students_file = os.path.join(students_path, "students.json")
+    os.makedirs(students_path, exist_ok=True)
+
+    students = []
+    if os.path.exists(students_file):
+        with open(students_file, "r") as f:
+            try:
+                students = json.load(f)
+            except Exception:
+                students = []
+
+    students.append(student_data)
+
+    with open(students_file, "w") as f:
+        json.dump(students, f, indent=2)
+
+    return {"message": "Student registered successfully!"}
 
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
@@ -235,6 +272,37 @@ def admin_login():
     else:
         return jsonify({"success": False, "message": "Incorrect credentials"}), 401
     
+@api_bp.route('/api/admin-reset', methods=['POST'])
+def reset_admin_credentials():
+    try:
+        admin_data = load_admin()
+        default_user = admin_data['default_username']
+        default_password = admin_data['default_password']
+
+        # Validate required fields
+        if not default_user or not default_password:
+            return jsonify({
+                "success": False,
+                "message": "Missing default username or password in admin.json"
+            }), 400
+
+        # Apply reset
+        admin_data['username'] = default_user
+        admin_data['password'] = default_password
+
+        save_admin(admin_data)
+
+        return jsonify({
+            "success": True,
+            "message": "Admin credentials reset to default."
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Failed to reset credentials: {str(e)}"
+        }), 500
+
 @api_bp.route('/api/admin-logout')
 def admin_logout():
     resp = make_response(redirect(url_for('pages.admin_login')))
