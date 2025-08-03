@@ -133,12 +133,13 @@
       <div class="student-section">
         <div class="student-card">
           <div class="student-photo-container">
-            <img src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Student" class="student-photo" />
+            <img src="{{ url_for('static', filename='images/profile-icon.svg') }}" alt="Student" 
+              class="student-photo"onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/profile-icon.svg') }}';" />
             <div class="photo-status">-</div>
           </div>
 
           <div class="student-info">
-            <h1 class="student-name" id="studentName">No Student Selected</h1>
+            <h1 class="student-name" id="studentName"></h1>
 
             <div class="info-grid">
               <div class="info-item">
@@ -215,6 +216,9 @@
   <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+  <script>
+    const profileIconUrl = "{{ url_for('static', filename='images/profile-icon.svg') }}";
+  </script>
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 
