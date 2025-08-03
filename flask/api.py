@@ -52,7 +52,7 @@ def register_student():
         student_data['photo'] = filename
     else:
         student_data['photo'] = None
-
+# testing comment
     # Save to students.json logic
     students_path = get_app_data_dir("CVE_REGISTER")
     students_file = os.path.join(students_path, "students.json")
