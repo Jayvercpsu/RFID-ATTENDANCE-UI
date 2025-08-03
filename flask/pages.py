@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template
 
 from config import ADMIN_DASHBOARD_PAGE, ADMIN_LOGIN_PAGE, MAIN_PAGE
+from utils.auth_utils import login_required_page
 
 
 pages_bp = Blueprint("pages", __name__)
@@ -15,5 +16,6 @@ def admin_login():
     return render_template(ADMIN_LOGIN_PAGE)
 
 @pages_bp.route("/admin/dashboard")
+@login_required_page
 def admin_dashboard():
     return render_template(ADMIN_DASHBOARD_PAGE)

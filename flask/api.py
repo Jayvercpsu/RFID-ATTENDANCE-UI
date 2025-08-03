@@ -1,35 +1,15 @@
-from datetime import datetime
-from flask import Blueprint, request, jsonify, send_from_directory, url_for
+from datetime import datetime, timedelta
+from flask import Blueprint, make_response, redirect, request, jsonify, send_from_directory, url_for
 import os
 import json
-from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path
+
+import jwt
+from utils.auth_utils import SECRET_KEY
+from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
 STUDENT_FILE = os.path.join(get_app_data_dir(), 'students.json')
-
-# @api_bp.route('/api/register', methods=['POST'])
-# def register_student():
-#     try:
-#         data = request.json
-
-#         # Load current data
-#         if os.path.exists(STUDENT_FILE):
-#             with open(STUDENT_FILE, 'r') as f:
-#                 content = f.read().strip()
-#                 students = json.loads(content) if content else []
-#         else:
-#             students = []
-
-#         students.append(data)
-
-#         # Save updated data
-#         with open(STUDENT_FILE, 'w') as f:
-#             json.dump(students, f, indent=2)
-
-#         return jsonify({"message": "Student registered successfully!"}), 200
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/photo/<filename>')
 def get_student_photo(filename):
@@ -176,3 +156,33 @@ def log_attendance():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/admin-login', methods=['POST'])
+def admin_login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    admin = load_admin()
+
+    if username == admin['username'] and password == admin['password']:
+        exp = datetime.utcnow() + timedelta(hours=24)
+        token = jwt.encode({"username": username, "exp": exp}, SECRET_KEY, algorithm="HS256")
+
+        resp = make_response(jsonify({"success": True}))
+        resp.set_cookie(
+            'admin_token',
+            token,
+            httponly=True,
+            expires=exp,
+            samesite='Lax'
+        )
+        return resp, 200
+    else:
+        return jsonify({"success": False, "message": "Incorrect credentials"}), 401
+    
+@api_bp.route('/api/admin-logout')
+def admin_logout():
+    resp = make_response(redirect(url_for('pages.admin_login')))
+    resp.delete_cookie('admin_token')
+    return resp

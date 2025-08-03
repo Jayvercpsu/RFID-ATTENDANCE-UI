@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
   <title>RFID Attendance Admin Panel</title>
 </head>
+
 <body>
   <nav>
     <div class="logo-name">
@@ -45,7 +47,7 @@
 
       <ul class="logout-mode">
         <li>
-          <a href="{{ url_for('pages.admin_login') }}">
+          <a href="{{ url_for('api.admin_logout') }}">
             <i class="uil uil-signout"></i>
             <span class="link-name">Logout</span>
           </a>
@@ -107,31 +109,31 @@
             <span class="data-title">Name</span>
             <span class="data-list">Juan Dela Cruz</span>
             <span class="data-list">Maria Santos</span>
-            <span class="data-list">Pedro Reyes</span> 
+            <span class="data-list">Pedro Reyes</span>
           </div>
           <div class="data email">
             <span class="data-title">Student ID</span>
             <span class="data-list">20231001</span>
             <span class="data-list">20231002</span>
-            <span class="data-list">20231003</span> 
+            <span class="data-list">20231003</span>
           </div>
           <div class="data joined">
             <span class="data-title">Time In</span>
             <span class="data-list">07:50 AM</span>
             <span class="data-list">08:02 AM</span>
-            <span class="data-list">07:45 AM</span> 
+            <span class="data-list">07:45 AM</span>
           </div>
           <div class="data type">
             <span class="data-title">RFID Status</span>
             <span class="data-list">Success</span>
             <span class="data-list">Success</span>
-            <span class="data-list">Late</span> 
+            <span class="data-list">Late</span>
           </div>
           <div class="data status">
             <span class="data-title">Remarks</span>
             <span class="data-list">On Time</span>
             <span class="data-list">On Time</span>
-            <span class="data-list">Late</span> 
+            <span class="data-list">Late</span>
           </div>
         </div>
       </div>
@@ -140,4 +142,5 @@
 
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
+
 </html>
