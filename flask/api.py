@@ -5,7 +5,7 @@ import json
 
 import jwt
 from utils.auth_utils import SECRET_KEY
-from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin
+from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin, save_admin
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
@@ -196,7 +196,38 @@ def admin_login():
         return resp, 200
     else:
         return jsonify({"success": False, "message": "Incorrect credentials"}), 401
-    
+
+@api_bp.route('/api/admin-reset', methods=['POST'])
+def reset_admin_credentials():
+    try:
+        admin_data = load_admin()
+        default_user = admin_data['default_username']
+        default_password = admin_data['default_password']
+
+        # Validate required fields
+        if not default_user or not default_password:
+            return jsonify({
+                "success": False,
+                "message": "Missing default username or password in admin.json"
+            }), 400
+
+        # Apply reset
+        admin_data['username'] = default_user
+        admin_data['password'] = default_password
+
+        save_admin(admin_data)
+
+        return jsonify({
+            "success": True,
+            "message": "Admin credentials reset to default."
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Failed to reset credentials: {str(e)}"
+        }), 500
+
 @api_bp.route('/api/admin-logout')
 def admin_logout():
     resp = make_response(redirect(url_for('pages.admin_login')))

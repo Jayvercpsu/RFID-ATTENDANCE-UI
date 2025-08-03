@@ -1,7 +1,7 @@
 # Create a Blueprint for pages
 from flask import Blueprint, render_template
 
-from config import ADMIN_DASHBOARD_PAGE, ADMIN_LOGIN_PAGE, ADMIN_STUDENTS_PAGE, MAIN_PAGE, ADMIN_ATTENDANCE_LOGS_PAGE, ADMIN_EMPLOYEE_LOGS_PAGE
+from config import ADMIN_DASHBOARD_PAGE, ADMIN_FORGOT_PASSWORD_PAGE, ADMIN_LOGIN_PAGE, ADMIN_STUDENTS_PAGE, MAIN_PAGE, ADMIN_ATTENDANCE_LOGS_PAGE, ADMIN_EMPLOYEE_LOGS_PAGE
 from utils.auth_utils import login_required_page
 
 
@@ -15,6 +15,10 @@ def home():
 @pages_bp.route("/admin/login")
 def admin_login():
     return render_template(ADMIN_LOGIN_PAGE)
+
+@pages_bp.route("/admin/forgot-password")
+def forgot_password():
+    return render_template(ADMIN_FORGOT_PASSWORD_PAGE)
 
 @pages_bp.route("/admin/dashboard")
 @login_required_page

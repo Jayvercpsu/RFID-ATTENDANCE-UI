@@ -214,62 +214,6 @@
   <script src="{{ url_for('static', filename='js/register-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
-
-  <script>
-    async function loadLogs() {
-      const res = await fetch('/api/logs');
-      const logs = await res.json();
-
-      // Sort logs descending by timestamp to get the latest entry
-      logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      const latestLog = logs[0];
-
-      // Update student section with latest log
-      if (latestLog) {
-        document.querySelector('.student-photo').src =
-          latestLog.avatar ||
-          (latestLog.gender === 'female'
-            ? 'https://randomuser.me/api/portraits/lego/1.jpg'
-            : 'https://randomuser.me/api/portraits/lego/1.jpg');
-
-        document.querySelector('#studentName').textContent = latestLog.first_name + ' ' + latestLog.last_name;
-        document.querySelector('#studentGender').textContent = latestLog.gender?.charAt(0).toUpperCase() + latestLog.gender?.slice(1) || 'N/A';
-        document.querySelector('#studentLevel').textContent = `${latestLog.grade} - ${latestLog.strandOrSec}`;
-        document.querySelector('#studentStatus').textContent = latestLog.status == 'IN' ? 'Time In' : 'Time Out';
-        document.querySelector('#studentTime').textContent = formatTime(latestLog.timestamp);
-      }
-
-      // Update logs list
-      const logsContainer = document.getElementById('logsContainer');
-      logsContainer.innerHTML = '';
-
-      logs.forEach(log => {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-
-        entry.innerHTML = `
-        <img src="${log.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="Student" class="log-avatar" />
-        <div class="log-info">
-          <div class="log-name">${log.first_name} ${log.last_name}</div>
-          <div class="log-time">${formatTime(log.timestamp)}</div>
-          <div class="log-department">Grade ${log.grade} - ${log.strandOrSec}</div>
-        </div>
-        <div class="log-status ${log.status === 'IN' ? 'status-in' : 'status-out'}">${log.status}</div>
-      `;
-
-        logsContainer.appendChild(entry);
-      });
-    }
-
-    function formatTime(isoString) {
-      if (!isoString) return 'Unknown time';
-      const date = new Date(isoString);
-      return `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    document.addEventListener('DOMContentLoaded', loadLogs);
-  </script>
-
   <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
