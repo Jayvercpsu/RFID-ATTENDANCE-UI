@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
 
   <title>RFID Attendance - Students</title>
@@ -48,6 +49,7 @@
                 <th>Guardian</th>
                 <th>RFID Code</th>
                 <th>Photo</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="studentsBody">
@@ -58,6 +60,69 @@
       </div>
     </div>
   </section>
+
+<!-- Edit Popup -->
+<div id="editPopup" class="popup hidden">
+  <div class="popup-backdrop" onclick="closeEditPopup()"></div>
+  <div class="popup-box">
+    <span class="close" onclick="closeEditPopup()">&times;</span>
+    <h3 class="popup-title">Edit Student</h3>
+    <form id="editForm" class="popup-form" onsubmit="return false;">
+      <input type="hidden" id="edit_rfid" name="rfid" />
+      <div class="popup-grid">
+        <div>
+          <label>First Name:
+            <input type="text" id="edit_first_name" required />
+          </label>
+          <label>Middle Name:
+            <input type="text" id="edit_middle_name" required />
+          </label>
+          <label>Last Name:
+            <input type="text" id="edit_last_name" required />
+          </label>
+          <label>Age:
+            <input type="number" id="edit_age" min="1" />
+          </label>
+          <label>Gender:
+            <input type="text" id="edit_gender" />
+          </label>
+        </div>
+        <div>
+          <label>Grade:
+            <input type="text" id="edit_grade" />
+          </label>
+          <label>Section:
+            <input type="text" id="edit_section" />
+          </label>
+          <label>Contact:
+            <input type="text" id="edit_contact" />
+          </label>
+          <label>Address:
+            <input type="text" id="edit_address" />
+          </label>
+        </div>
+      </div>
+      <label>Guardian:
+        <input type="text" id="edit_guardian" />
+      </label>
+      <button type="submit" class="btn-submit">Update</button>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Popup -->
+<div id="deletePopup" class="popup hidden">
+  <div class="popup-backdrop" onclick="closeDeletePopup()"></div>
+  <div class="popup-box">
+    <span class="close" onclick="closeDeletePopup()">&times;</span>
+    <h3 class="popup-title">Confirm Delete</h3>
+    <p class="popup-message">Are you sure you want to delete this student?</p>
+    <div class="popup-actions">
+      <button onclick="confirmDelete()" class="btn-delete-confirm">Yes, Delete</button>
+      <button onclick="closeDeletePopup()" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
 
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
