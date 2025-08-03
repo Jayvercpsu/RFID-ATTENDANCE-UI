@@ -44,7 +44,7 @@ async function loadLogs() {
         <div class="log-info">
           <div class="log-name">${log.first_name} ${log.last_name}</div>
           <div class="log-time">${formatTime(log.timestamp)}</div>
-          <div class="log-department">Grade ${log.grade} - ${
+          <div class="log-department">${log.grade} - ${
       log.strandOrSec
     }</div>
         </div>
@@ -215,10 +215,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (res.ok) {
         toastr.success(result.message);
-        registerForm.reset();
-        qrModal.classList.remove("show");
-        document.getElementById("reader").innerHTML = "";
-        document.getElementById("registerModal").classList.remove("show");
+        setTimeout(() => {
+          registerForm.reset();
+          qrModal.classList.remove("show");
+          document.getElementById("reader").innerHTML = "";
+          document.getElementById("registerModal").classList.remove("show");
+          startInlineScanner();
+        }, 2000);
       } else {
         toastr.error(result.error || "Registration failed.");
       }
