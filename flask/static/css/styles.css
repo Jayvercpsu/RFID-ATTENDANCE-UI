@@ -36,14 +36,13 @@ body {
 .dashboard {
   display: flex;
   height: 100vh;
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  margin: 0.5rem;
+  margin: 10px;
 }
 
 /* LEFT PANEL - Enhanced Main Display */
@@ -216,7 +215,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   gap: 1rem;
   min-height: 0;
   overflow-y: auto;
@@ -263,6 +262,44 @@ body {
 
 .student-photo:hover {
   transform: scale(1.02);
+}
+
+/* Medium laptops (15-16") - ~1440px */
+@media screen and (min-width: 1440px) {  
+  .student-photo {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* Large screens (17" laptops and desktops) - ~1600px */
+@media screen and (min-width: 1600px) {
+  .student-card {
+    gap: 2.5rem;
+    padding: 2rem;
+  }
+  
+  .student-photo {
+    width: 100px;
+    height: 300px;
+  }
+}
+
+/* Extra large screens - ~1920px (Full HD+) */
+@media screen and (min-width: 1920px) {
+  .student-card {
+    gap: 3rem;
+    padding: 2.5rem;
+    border-radius: 24px;
+    min-height: 300px;
+  }
+  
+  .student-photo {
+    width: 250px;
+    height: 250px;
+    border-radius: 20px;
+    border-width: 4px;
+  }
 }
 
 .photo-status {
