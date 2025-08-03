@@ -1,5 +1,13 @@
 async function loadLogs() {
+  const logsContainer = document.getElementById("logsContainer");
+
   const res = await fetch("/api/logs");
+  console.log(res);
+  if (!res.ok) {
+    logsContainer.innerHTML = "<p style='text-align:center;'>Empty logs for today</p>";
+    return;
+  }
+
   const logs = await res.json();
 
   // Sort logs descending by timestamp to get the latest entry
@@ -9,10 +17,7 @@ async function loadLogs() {
   // Update student section with latest log
   if (latestLog) {
     document.querySelector(".student-photo").src =
-      latestLog.avatar ||
-      (latestLog.gender === "female"
-        ? "https://randomuser.me/api/portraits/lego/1.jpg"
-        : "https://randomuser.me/api/portraits/lego/1.jpg");
+      latestLog.avatar || profileIconUrl;
 
     document.querySelector("#studentName").textContent =
       latestLog.first_name + " " + latestLog.last_name;
@@ -30,7 +35,6 @@ async function loadLogs() {
   }
 
   // Update logs list
-  const logsContainer = document.getElementById("logsContainer");
   logsContainer.innerHTML = "";
 
   logs.forEach((log) => {
@@ -39,14 +43,14 @@ async function loadLogs() {
 
     entry.innerHTML = `
         <img src="${
-          log.avatar || "https://randomuser.me/api/portraits/lego/1.jpg"
-        }" alt="Student" class="log-avatar" />
+          log.avatar || profileIconUrl
+        }" alt="Student" class="log-avatar"
+        onerror="this.onerror=null;this.src='${profileIconUrl}';"
+        />
         <div class="log-info">
           <div class="log-name">${log.first_name} ${log.last_name}</div>
           <div class="log-time">${formatTime(log.timestamp)}</div>
-          <div class="log-department">Grade ${log.grade} - ${
-      log.strandOrSec
-    }</div>
+          <div class="log-department">${log.grade} - ${log.strandOrSec}</div>
         </div>
         <div class="log-status ${
           log.status === "IN" ? "status-in" : "status-out"
@@ -215,10 +219,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (res.ok) {
         toastr.success(result.message);
-        registerForm.reset();
-        qrModal.classList.remove("show");
-        document.getElementById("reader").innerHTML = "";
-        document.getElementById("registerModal").classList.remove("show");
+        setTimeout(() => {
+          registerForm.reset();
+          qrModal.classList.remove("show");
+          document.getElementById("reader").innerHTML = "";
+          document.getElementById("registerModal").classList.remove("show");
+          startInlineScanner();
+        }, 2000);
       } else {
         toastr.error(result.error || "Registration failed.");
       }
