@@ -2,7 +2,7 @@ let deleteRFID = null;
 let studentsTable = null; // Store the DataTable instance
 
 $(document).ready(function () {
-  fetch('/api/logs')
+  fetch('/api/students')
     .then(response => response.json())
     .then(data => {
       const tbody = document.getElementById('studentsBody');
@@ -108,19 +108,40 @@ $(document).ready(function () {
 });
 
 function openEditPopup(student) {
-  $('#edit_rfid').val(student.rfid);
-  $('#edit_first_name').val(student.first_name);
-  $('#edit_middle_name').val(student.middle_name || '');
-  $('#edit_last_name').val(student.last_name);
-  $('#edit_age').val(student.age);
-  $('#edit_gender').val(student.gender);
-  $('#edit_grade').val(student.grade);
-  $('#edit_section').val(student.strandOrSec || student.section || '');
-  $('#edit_contact').val(student.contact);
-  $('#edit_address').val(student.address);
-  $('#edit_guardian').val(student.guardian);
-  $('#editPopup').removeClass('hidden');
+  // Always fetch the latest data from the server
+  fetch('/api/students')
+    .then(res => res.json())
+    .then(data => {
+      // Find the most up-to-date student by RFID or RFID code
+      const freshStudent = data.find(s => s.rfid === student.rfid || s.rfid_code === student.rfid);
+
+      if (!freshStudent) {
+        alert("Student not found in latest records.");
+        return;
+      }
+
+      // Populate modal form fields
+      $('#edit_rfid').val(freshStudent.rfid);
+      $('#edit_first_name').val(freshStudent.first_name);
+      $('#edit_middle_name').val(freshStudent.middle_name || '');
+      $('#edit_last_name').val(freshStudent.last_name);
+      $('#edit_age').val(freshStudent.age);
+      $('#edit_gender').val(freshStudent.gender);
+      $('#edit_grade').val(freshStudent.grade);
+      $('#edit_section').val(freshStudent.strandOrSec || freshStudent.section || '');
+      $('#edit_contact').val(freshStudent.contact);
+      $('#edit_address').val(freshStudent.address);
+      $('#edit_guardian').val(freshStudent.guardian);
+
+      // Show modal
+      $('#editPopup').removeClass('hidden');
+    })
+    .catch(err => {
+      console.error("Failed to fetch student data:", err);
+      alert("Error fetching student data. See console for details.");
+    });
 }
+
 
 function closeEditPopup() {
   $('#editPopup').addClass('hidden');
