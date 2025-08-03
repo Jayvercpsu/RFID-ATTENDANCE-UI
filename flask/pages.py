@@ -2,6 +2,8 @@
 from flask import Blueprint, render_template
 
 from config import ADMIN_DASHBOARD_PAGE, ADMIN_LOGIN_PAGE, ADMIN_STUDENTS_PAGE, MAIN_PAGE, ADMIN_ATTENDANCE_LOGS_PAGE, ADMIN_EMPLOYEE_LOGS_PAGE
+from utils.auth_utils import login_required_page
+
 
 
 pages_bp = Blueprint("pages", __name__)

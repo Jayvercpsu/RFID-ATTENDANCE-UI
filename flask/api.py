@@ -2,7 +2,10 @@ from datetime import datetime, timedelta
 from flask import Blueprint, make_response, redirect, request, jsonify, send_from_directory, url_for
 import os
 import json
-from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path
+
+import jwt
+from utils.auth_utils import SECRET_KEY
+from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
@@ -193,3 +196,33 @@ def log_attendance():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/admin-login', methods=['POST'])
+def admin_login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    admin = load_admin()
+
+    if username == admin['username'] and password == admin['password']:
+        exp = datetime.utcnow() + timedelta(hours=24)
+        token = jwt.encode({"username": username, "exp": exp}, SECRET_KEY, algorithm="HS256")
+
+        resp = make_response(jsonify({"success": True}))
+        resp.set_cookie(
+            'admin_token',
+            token,
+            httponly=True,
+            expires=exp,
+            samesite='Lax'
+        )
+        return resp, 200
+    else:
+        return jsonify({"success": False, "message": "Incorrect credentials"}), 401
+    
+@api_bp.route('/api/admin-logout')
+def admin_logout():
+    resp = make_response(redirect(url_for('pages.admin_login')))
+    resp.delete_cookie('admin_token')
+    return resp
