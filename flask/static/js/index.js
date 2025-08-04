@@ -196,6 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
       contact: registerForm[7].value,
       address: registerForm[8].value,
       guardian: registerForm[9].value,
+      occupation: registerForm[10].value,
       rfid_code: rfidCode,
     };
 

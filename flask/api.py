@@ -9,7 +9,7 @@ from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_studen
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
-STUDENT_FILE = os.path.join(get_app_data_dir(), 'students.json')
+STUDENT_FILE = os.path.join(get_app_data_dir(), 'data.json')
 
 @api_bp.route('/api/photo/<filename>')
 def get_student_photo(filename):
@@ -33,9 +33,9 @@ def register_student():
     else:
         student_data['photo'] = None
 # testing comment
-    # Save to students.json logic
+    # Save to data.json logic
     students_path = get_app_data_dir("CVE_REGISTER")
-    students_file = os.path.join(students_path, "students.json")
+    students_file = os.path.join(students_path, "data.json")
     os.makedirs(students_path, exist_ok=True)
 
     students = []
@@ -51,7 +51,8 @@ def register_student():
     with open(students_file, "w") as f:
         json.dump(students, f, indent=2)
 
-    return {"message": "Student registered successfully!"}
+    occupation = student_data['occupation'] if 'occupation' in student_data else "Student"
+    return {"message": f"{occupation} registered successfully!"}
 
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
@@ -96,7 +97,7 @@ def get_students():
 @api_bp.route('/api/students/<rfid>', methods=['DELETE'])
 def delete_student_by_rfid(rfid):
     if not os.path.exists(STUDENT_FILE):
-        return jsonify({'error': 'students.json not found'}), 404
+        return jsonify({'error': 'data.json not found'}), 404
 
     try:
         with open(STUDENT_FILE, 'r') as f:
@@ -122,7 +123,7 @@ def delete_student_by_rfid(rfid):
 @api_bp.route('/api/students/<rfid>', methods=['PUT'])
 def update_student_by_rfid(rfid):
     if not os.path.exists(STUDENT_FILE):
-        return jsonify({'error': 'students.json not found'}), 404
+        return jsonify({'error': 'data.json not found'}), 404
 
     try:
         updated_data = request.json
@@ -152,7 +153,7 @@ def update_student_by_rfid(rfid):
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     log_file_path = get_student_file_path()
-    student_file_path = os.path.join(get_app_data_dir(), "students.json")
+    student_file_path = os.path.join(get_app_data_dir(), "data.json")
 
     try:
         data = request.json
@@ -163,7 +164,7 @@ def log_attendance():
 
         # Load student list
         if not os.path.exists(student_file_path):
-            return jsonify({"error": "students.json not found"}), 404
+            return jsonify({"error": "data.json not found"}), 404
 
         with open(student_file_path, "r") as sf:
             students = json.load(sf)

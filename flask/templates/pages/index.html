@@ -45,17 +45,17 @@
             <span class="close-btn" id="closeModal">&times;</span>
           </div>
           <form class="modal-form" id="registerForm">
-            <label>First name</label>
+            <label>First name <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter first name" required />
-            <label>Middle name</label>
+            <label>Middle name <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter middle name" required />
-            <label>Last name</label>
+            <label>Last name <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter last name" required />
 
-            <label>Age</label>
+            <label>Age <span style="color: red">*</span></label>
             <input type="number" placeholder="Enter age" required />
 
-            <label>Gender</label>
+            <label>Gender <span style="color: red">*</span></label>
             <select required>
               <option value="">Select gender</option>
               <option>Male</option>
@@ -63,20 +63,27 @@
               <option>Other</option>
             </select>
 
-            <label>Grade/Year Level</label>
+            <label>Grade/Year Level <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter grade/level" required />
 
-            <label>Section/Strand/Course</label>
+            <label>Section/Strand/Course <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter section" required />
 
-            <label>Contact Number</label>
+            <label>Contact Number <span style="color: red">*</span></label>
             <input type="tel" placeholder="Enter contact number" required />
 
-            <label>Address</label>
+            <label>Address <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter address" required />
 
-            <label>Guardian's Name</label>
+            <label>Guardian's Name <span style="color: red">*</span></label>
             <input type="text" placeholder="Enter guardian name" required />
+            
+            <label>Occupation <span style="color: red">*</span></label>
+            <select required>
+              <option value="">Select occupation</option>
+              <option>Student</option>
+              <option>Employee</option>
+            </select>
 
             <div style="margin-top: 20px;">
               <!-- Code Type Toggle -->
@@ -133,8 +140,8 @@
       <div class="student-section">
         <div class="student-card">
           <div class="student-photo-container">
-            <img src="{{ url_for('static', filename='images/profile-icon.svg') }}" alt="Student" 
-              class="student-photo"onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/profile-icon.svg') }}';" />
+            <img src="{{ url_for('static', filename='images/profile-icon.svg') }}" alt="Student" class="student-photo"
+              onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/profile-icon.svg') }}';" />
             <div class="photo-status">-</div>
           </div>
 
