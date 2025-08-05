@@ -62,7 +62,7 @@ $(document).ready(function () {
     const rfid = $("#edit_rfid").val();
 
     if (!currentEditData) {
-      alert("No record selected for editing");
+      toastr.error("No record selected for editing");
       return;
     }
 
@@ -93,7 +93,7 @@ $(document).ready(function () {
       const result = await response.json();
 
       if (response.ok) {
-        alert("Attendance record updated successfully");
+         toastr.success("Attendance record updated successfully");
         closeEditPopup();
         // Refresh the table
         loadAttendanceData();
@@ -102,7 +102,7 @@ $(document).ready(function () {
       }
     } catch (error) {
       console.error("Error updating record:", error);
-      alert("Error updating record: " + error.message);
+       toastr.error("Error updating record: " + error.message);
     }
   });
 
