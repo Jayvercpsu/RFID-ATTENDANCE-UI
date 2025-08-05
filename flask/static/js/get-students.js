@@ -28,7 +28,7 @@ $(document).ready(function () {
   <td class="col-contact">${student.contact || ''}</td>
   <td class="col-address">${student.address || ''}</td>
   <td class="col-guardian">${student.guardian || ''}</td>
-  <td class="col-rfid">${student.rfid || student.rfid_code || ''}</td>
+  <td class="col-rfid"></td>
  
  <td style="position: relative; overflow: visible; z-index: 1;">
   <div style="position: relative; display: inline-block;">
