@@ -1,3 +1,4 @@
+import shutil
 import zipfile
 from flask import Blueprint, request, jsonify
 import os
@@ -7,28 +8,6 @@ from werkzeug.utils import secure_filename
 from utils.path_utils import get_app_data_dir, get_student_file_path, get_photo_folder_path, load_admin, save_admin
 
 settings_bp = Blueprint('settings', __name__)
-
-# Initialize default settings in admin.json if they don't exist
-def init_settings():
-    admin_data = load_admin()
-    defaults = {
-        "backup_path": os.path.join(get_app_data_dir(), "backups"),
-        "default_username": "admin",
-        "default_password": "admin123"
-    }
-    
-    # Set defaults if they don't exist
-    updated = False
-    for key, value in defaults.items():
-        if key not in admin_data:
-            admin_data[key] = value
-            updated = True
-    
-    if updated:
-        save_admin(admin_data)
-
-# Initialize settings when module loads
-init_settings()
 
 @settings_bp.route('/api/get-settings', methods=['GET'])
 def get_settings():
@@ -59,66 +38,38 @@ def update_profile():
     save_admin(admin_data)
     return jsonify({"message": "Profile updated successfully"})
 
-@settings_bp.route('/api/set-backup-location', methods=['POST'])
-def set_backup_location():
-    data = request.json
-    path = data.get('path')
-    
-    if not path:
-        return jsonify({"error": "No path provided"}), 400
-    
-    # Validate path exists and is writable
-    if not os.path.exists(path):
-        return jsonify({"error": "Path does not exist"}), 400
-    if not os.access(path, os.W_OK):
-        return jsonify({"error": "Path is not writable"}), 400
-    
-    admin_data = load_admin()
-    admin_data['backup_path'] = path
-    save_admin(admin_data)
-    
-    return jsonify({
-        "message": "Backup location updated",
-        "path": path
-    })
-
 @settings_bp.route('/api/create-backup', methods=['POST'])
 def create_backup():
     data = request.json
-    admin_data = load_admin()
-    backup_path = data.get('location') or admin_data.get('backup_path')
-    
+    backup_path = data.get("backup_path")
+
     if not backup_path:
-        return jsonify({"error": "No backup location configured"}), 400
-    
+        return jsonify({"error":"No backup path provided"}), 400
+
+    # Auto-create the destination folder if it does not exist
     try:
-        # Ensure backup directory exists
         os.makedirs(backup_path, exist_ok=True)
-        
-        # Create backup filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"attendance_backup_{timestamp}.zip"
-        backup_fullpath = os.path.join(backup_path, backup_filename)
-        
-        # Get paths to important files to backup
-        files_to_backup = [
-            get_student_file_path(),  # logs.json
-            os.path.join(get_app_data_dir("CVE_REGISTER"), "data.json"),  # student data
-            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'credentials', 'admin.json')  # settings
-        ]
-        
-        # Create zip archive
-        with zipfile.ZipFile(backup_fullpath, 'w') as zipf:
-            for file in files_to_backup:
-                if os.path.exists(file):
-                    arcname = os.path.basename(file)
-                    zipf.write(file, arcname)
-        
-        return jsonify({
-            "message": "Backup created successfully",
-            "path": backup_fullpath,
-            "filename": backup_filename
-        })
+    except Exception as e:
+        return jsonify({"error": f"Cannot create backup folder: {e}"}), 500
+    
+    folders = ["CVE_ATTENDANCE", "CVE_PHOTO", "CVE_REGISTER"]
+    appdata = os.getenv('APPDATA', os.path.expanduser("~"))
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_filename = f"rfid_backup_{timestamp}.zip"
+    backup_full = os.path.join(backup_path, backup_filename)
+
+    try:
+        with zipfile.ZipFile(backup_full, 'w', zipfile.ZIP_DEFLATED) as z:
+            for folder in folders:
+                folder_path = os.path.join(appdata, folder)
+                if os.path.exists(folder_path):
+                    for root,dirs,files in os.walk(folder_path):
+                        for f in files:
+                            file_path = os.path.join(root, f)
+                            arcname = os.path.join(folder, os.path.relpath(file_path,folder_path))
+                            z.write(file_path, arcname)
+        return jsonify({"success": True,"backup_path":backup_full })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -126,48 +77,54 @@ def create_backup():
 def restore_backup():
     if 'backupFile' not in request.files:
         return jsonify({"error": "No backup file provided"}), 400
-    
-    backup_file = request.files['backupFile']
-    if backup_file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
+    file = request.files['backupFile']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}),400
+
     try:
-        # Create temp directory in app data folder
-        temp_dir = os.path.join(get_app_data_dir(), "temp")
+        temp_dir = os.path.join(os.getenv('APPDATA', os.path.expanduser('~')), 'rfid_temp')
         os.makedirs(temp_dir, exist_ok=True)
-        
-        # Save uploaded file temporarily
-        filename = secure_filename(backup_file.filename)
-        temp_path = os.path.join(temp_dir, filename)
-        backup_file.save(temp_path)
-        
-        # Define restore locations
-        restore_locations = {
-            "logs.json": get_student_file_path(),
-            "data.json": os.path.join(get_app_data_dir("CVE_REGISTER"), "data.json"),
-            "admin.json": os.path.join(os.path.dirname(os.path.dirname(__file__)), 'credentials', 'admin.json')
-        }
-        
-        # Extract and restore files
-        with zipfile.ZipFile(temp_path, 'r') as zipf:
-            for file in zipf.namelist():
-                if file in restore_locations:
-                    # Extract to temp location first
-                    temp_extract = os.path.join(temp_dir, file)
-                    with open(temp_extract, 'wb') as f:
-                        f.write(zipf.read(file))
-                    
-                    # Then move to final location
-                    os.replace(temp_extract, restore_locations[file])
-        
-        # Clean up
-        os.remove(temp_path)
-        
-        return jsonify({"message": "Backup restored successfully"})
+
+        filename = file.filename
+        temp_zip_path = os.path.join(temp_dir, filename)
+        file.save(temp_zip_path)
+
+        extract_path = os.path.join(temp_dir,'extracted')
+        with zipfile.ZipFile(temp_zip_path,'r') as z:
+            z.extractall(extract_path)
+
+        appdata = os.getenv('APPDATA', os.path.expanduser('~'))
+        for folder in os.listdir(extract_path):
+            src = os.path.join(extract_path, folder)
+            dst = os.path.join(appdata, folder)
+            if os.path.exists(dst):
+                shutil.rmtree(dst)
+            shutil.move(src,dst)
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        return jsonify({"success":True})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        # Clean up any remaining temp files
-        if 'temp_extract' in locals():
-            if os.path.exists(temp_extract):
-                os.remove(temp_extract)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        return jsonify({"error":str(e)}),500
+
+@settings_bp.route('/api/set-backup-path', methods=['POST'])
+def set_backup_path():
+    data = request.json
+    path = data.get('path')
+    
+    if not path:
+        return jsonify({"error": "No path provided"}), 400
+    
+    # In a real app, you would save this to your settings
+    return jsonify({
+        "message": "Backup path updated",
+        "path": path
+    })
+
+@settings_bp.route('/api/get-backup-path', methods=['GET'])
+def get_backup_path():
+    # In a real app, you would get this from your settings
+    return jsonify({
+        "backup_path": os.path.join(os.getenv('APPDATA', os.path.expanduser('~')), 'backups')
+    })
+

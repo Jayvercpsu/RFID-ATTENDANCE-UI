@@ -18,6 +18,7 @@ $(document).ready(function () {
           ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
           : 'N/A'}
   </td>
+  <td class="col-id-number">${student.id_number || ''}</td>
   <td class="col-first_name">${student.first_name || ''}</td>
   <td class="col-middle_name">${student.middle_name || ''}</td>
   <td class="col-last_name">${student.last_name || ''}</td>
@@ -28,7 +29,6 @@ $(document).ready(function () {
   <td class="col-contact">${student.contact || ''}</td>
   <td class="col-address">${student.address || ''}</td>
   <td class="col-guardian">${student.guardian || ''}</td>
-  <td class="col-rfid"></td>
  
  <td style="position: relative; overflow: visible; z-index: 1;">
   <div style="position: relative; display: inline-block;">

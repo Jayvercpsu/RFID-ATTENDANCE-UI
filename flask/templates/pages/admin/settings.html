@@ -82,25 +82,21 @@
             <div class="form-group">
               <label for="backupLocation">Backup Location</label>
               <div class="input-group">
-                <input type="text" id="backupLocation" name="backupLocation" readonly>
-                <button type="button" class="btn-browse" id="directoryPickerBtn">
-                  <i class="uil uil-folder-open"></i> Browse
-                </button>
-                <!-- Hidden file input for directory selection -->
-                <input type="file" id="directoryInput" webkitdirectory directory multiple style="display: none;">
+                <input type="text" id="backupLocation" name="backupLocation"
+                  placeholder="Enter backup path e.g. D:\\Projects" />
+              </div>
             </div>
-            <small class="hint">Current: {{ backup_path }}</small>
+            <div class="form-actions">
+              <button type="button" class="btn-backup" onclick="createBackup()">
+                <i class="uil uil-download-alt"></i> Create Backup Now
+              </button>
+              <button type="button" class="btn-restore" onclick="restoreBackup()">
+                <i class="uil uil-history"></i> Restore Backup
+              </button>
+            </div>
+            <input type="file" id="restoreFileInput" accept=".zip" style="display:none;" />
+          </form>
         </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn-backup" onclick="createBackup()">
-            <i class="uil uil-download-alt"></i> Create Backup Now
-          </button>
-          <button type="button" class="btn-restore" onclick="restoreBackup()">
-            <i class="uil uil-history"></i> Restore Backup
-          </button>
-        </div>
-        </form>
       </div>
     </div>
     </div>

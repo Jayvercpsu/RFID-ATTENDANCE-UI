@@ -32,7 +32,9 @@ document
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || result.message || "Failed to update profile");
+        throw new Error(
+          result.message || result.error || "Failed to update profile"
+        );
       }
 
       showAlert("success", "Profile updated successfully!");
@@ -45,136 +47,6 @@ document
       showAlert("error", error.message);
     }
   });
-
-// Backup directory selection
-document
-  .getElementById("directoryPickerBtn")
-  .addEventListener("click", function () {
-    openDirectoryPicker();
-  });
-
-// Handle directory selection
-document
-  .getElementById("directoryInput")
-  .addEventListener("change", async function (e) {
-    if (this.files.length > 0) {
-      try {
-        // Get the directory path
-        const path = this.files[0].webkitRelativePath.split("/")[0];
-        document.getElementById("backupLocation").value = path;
-
-        // Save to server
-        const response = await fetch("/api/set-backup-location", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ path: path }),
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message);
-
-        showAlert("success", "Backup location saved successfully");
-      } catch (error) {
-        console.error("Error saving backup location:", error);
-        showAlert("error", "Failed to save backup location: " + error.message);
-      }
-    }
-  });
-
-// Create backup handler
-async function createBackup() {
-  const location = document.getElementById("backupLocation").value;
-  if (!location) {
-    showAlert("error", "Please select a backup location first");
-    return;
-  }
-
-  try {
-    showAlert("info", "Creating backup...");
-
-    const response = await fetch("/api/create-backup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ location }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.message);
-
-    showAlert("success", `Backup created successfully at ${location}`);
-  } catch (error) {
-    console.error("Backup error:", error);
-    showAlert("error", "Failed to create backup: " + error.message);
-  }
-}
-
-// Restore backup handler
-async function restoreBackup() {
-  try {
-    showAlert("info", "Select backup file to restore...");
-
-    // This would need a file input for backup file selection
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = ".zip,.bak,.backup";
-    fileInput.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append("backupFile", file);
-
-      try {
-        const response = await fetch("/api/restore-backup", {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message);
-
-        showAlert("success", "Backup restored successfully!");
-        // Refresh the page or update UI as needed
-        setTimeout(() => location.reload(), 1500);
-      } catch (error) {
-        console.error("Restore error:", error);
-        showAlert("error", "Failed to restore backup: " + error.message);
-      }
-    };
-
-    fileInput.click();
-  } catch (error) {
-    console.error("Restore error:", error);
-    showAlert("error", "Failed to restore backup: " + error.message);
-  }
-}
-
-// Directory picker function (works differently for web vs Electron)
-function openDirectoryPicker() {
-  // Check if running in Electron
-  if (typeof window.electron !== "undefined") {
-    window.electron
-      .showOpenDialog({
-        properties: ["openDirectory"],
-      })
-      .then((result) => {
-        if (!result.canceled && result.filePaths.length > 0) {
-          document.getElementById("backupLocation").value = result.filePaths[0];
-          // Auto-save the path
-          document
-            .getElementById("directoryInput")
-            .dispatchEvent(new Event("change"));
-        }
-      });
-  } else {
-    // Web browser fallback
-    document.getElementById("directoryInput").click();
-  }
-}
 
 // Helper function to show alerts
 function showAlert(type, message) {
@@ -201,16 +73,92 @@ function showAlert(type, message) {
   setTimeout(() => alertBox.remove(), 3000);
 }
 
+// Backup functions
+function createBackup() {
+  const backupPath = document.getElementById("backupLocation").value.trim();
+  if (!backupPath) {
+    showAlert("error", "Please enter a backup path (e.g. D:\\Projects)");
+    return;
+  }
+
+  fetch("/api/create-backup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ backup_path: backupPath }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        showAlert(
+          "success",
+          "Backup successfully created at: " + data.backup_path
+        );
+      } else {
+        throw new Error(data.error || "Backup failed");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.message.includes("denied")) {
+        showAlert("error", "Cannot backup using main directory. Try add sub folder.");
+      } else {
+        showAlert("error", err.message);
+      }
+    });
+}
+
+function restoreBackup() {
+  const input = document.getElementById("restoreFileInput");
+  input.value = ""; // reset any previous selection
+  input.click();
+
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("backupFile", file);
+
+    fetch("/api/restore-backup", {
+      method: "POST",
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          showAlert("success", "Restore successful!");
+          setTimeout(() => location.reload(), 1000); // optional refresh
+        } else {
+          throw new Error(data.error || "Restore failed");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        showAlert("error", err.message);
+      });
+  };
+}
+
+async function saveBackupPath(path) {
+  try {
+    const response = await fetch("/api/set-backup-path", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ path }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message);
+  } catch (error) {
+    console.error("Error saving backup path:", error);
+  }
+}
+
 // Initialize the page
 document.addEventListener("DOMContentLoaded", function () {
-  // Load current settings
   loadCurrentSettings();
-
-  // Set up button event listeners
-  document.querySelector(".btn-backup").addEventListener("click", createBackup);
-  document
-    .querySelector(".btn-restore")
-    .addEventListener("click", restoreBackup);
 });
 
 // Load current settings from server
@@ -222,9 +170,12 @@ async function loadCurrentSettings() {
     if (response.ok) {
       document.getElementById("username").value = settings.username || "admin";
       document.getElementById("backupLocation").value =
-        settings.backupPath || "";
+        settings.backup_path || "";
     }
   } catch (error) {
     console.error("Failed to load settings:", error);
   }
 }
+
+window.createBackup = createBackup;
+window.restoreBackup = restoreBackup;
