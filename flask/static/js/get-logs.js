@@ -8,6 +8,11 @@ $(document).ready(function () {
       data.forEach(log => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>
+            ${log.avatar
+              ? `<img src="${log.avatar}" alt="Photo" width="50" />`
+              : 'N/A'}
+          </td>
           <td>${log.status || ''}</td>
           <td>${new Date(log.timestamp).toLocaleString()}</td>
           <td>${log.first_name || ''}</td>
@@ -18,11 +23,6 @@ $(document).ready(function () {
           <td>${log.gender || ''}</td>
           <td>${log.contact || ''}</td>
           <td>${log.guardian || ''}</td>
-          <td>
-            ${log.avatar
-              ? `<img src="${log.avatar}" alt="Photo" width="50" />`
-              : 'N/A'}
-          </td>
         `;
         tbody.appendChild(row);
       });

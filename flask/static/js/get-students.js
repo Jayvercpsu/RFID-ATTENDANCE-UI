@@ -13,6 +13,11 @@ $(document).ready(function () {
         row.setAttribute('data-rfid', student.rfid || student.rfid_code);
 
         row.innerHTML = `
+  <td class="col-avatar"> 
+    ${student.avatar
+          ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
+          : 'N/A'}
+  </td>
   <td class="col-first_name">${student.first_name || ''}</td>
   <td class="col-middle_name">${student.middle_name || ''}</td>
   <td class="col-last_name">${student.last_name || ''}</td>
@@ -24,11 +29,7 @@ $(document).ready(function () {
   <td class="col-address">${student.address || ''}</td>
   <td class="col-guardian">${student.guardian || ''}</td>
   <td class="col-rfid">${student.rfid || student.rfid_code || ''}</td>
-  <td class="col-avatar"> 
-    ${student.avatar
-            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
-            : 'N/A'}
-  </td>
+ 
  <td style="position: relative; overflow: visible; z-index: 1;">
   <div style="position: relative; display: inline-block;">
     <!-- Three Dots Button -->
@@ -60,7 +61,7 @@ $(document).ready(function () {
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       padding: 4px 0;
     ">
-      <button onclick='openEditPopup(${JSON.stringify(student)})' style="
+      <button class="btn-edit" data-rfid="${student.rfid || student.rfid_code}" style="
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -76,7 +77,7 @@ $(document).ready(function () {
         <span>Edit</span>
         <i class="fas fa-pen"></i>
       </button>
-      <button onclick='openDeletePopup(\"${student.rfid || student.rfid_code}\")' style="
+      <button onclick='openDeletePopup("${student.rfid || student.rfid_code}")' style="
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -95,20 +96,17 @@ $(document).ready(function () {
     </div>
   </div>
 </td>
-
-  `;
+        `;
         tbody.appendChild(row);
       });
-
-
 
       if (studentsTable) {
         studentsTable.clear().destroy();
       }
       studentsTable = $('#studentsTable').DataTable();
-
     });
 
+  // Submit Edit Form
   $('#editForm').submit(function (e) {
     e.preventDefault();
 
@@ -126,7 +124,7 @@ $(document).ready(function () {
       guardian: $('#edit_guardian').val()
     };
 
-    fetch(`/api/student/${updated.rfid}`, {
+    fetch(`/api/students/${updated.rfid}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
@@ -146,21 +144,63 @@ $(document).ready(function () {
           cells[7].textContent = updated.contact;
           cells[8].textContent = updated.address;
           cells[9].textContent = updated.guardian;
-
-          const editBtn = $(cells[12]).find('button')[0];
-          const updatedData = {
-            ...updated,
-            middle_name: updated.middle_name,
-            avatar: $(cells[11]).find('img').attr('src') || ''
-          };
-          editBtn.setAttribute('onclick', `openEditPopup(${JSON.stringify(updatedData)})`);
         }
 
         closeEditPopup();
+        showAlert('Student updated successfully');
       });
   });
 
+// Handle Edit Button (delegated)
+$(document).on('click', '.btn-edit', function () {
+  const rfid = $(this).data('rfid');
+
+  fetch('/api/students')
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to fetch student list');
+      return res.json();
+    })
+    .then(data => {
+      const student = data.find(s => s.rfid === rfid || s.rfid_code === rfid);
+      if (!student) {
+        alert('Student not found.');
+        return;
+      }
+
+      // ✅ Use fallback RFID to ensure value exists in modal and API request
+      const resolvedRfid = student.rfid || student.rfid_code;
+      if (!resolvedRfid) {
+        alert('Missing RFID or RFID code. Cannot edit this student.');
+        return;
+      }
+
+      // ✅ Set hidden field with correct RFID for use in PUT /api/students/:rfid
+      $('#edit_rfid').val(resolvedRfid);
+
+      // ✅ Populate modal fields
+      $('#edit_first_name').val(student.first_name || '');
+      $('#edit_middle_name').val(student.middle_name || '');
+      $('#edit_last_name').val(student.last_name || '');
+      $('#edit_age').val(student.age || '');
+      $('#edit_gender').val(student.gender || '');
+      $('#edit_grade').val(student.grade || '');
+      $('#edit_section').val(student.strandOrSec || student.section || '');
+      $('#edit_contact').val(student.contact || '');
+      $('#edit_address').val(student.address || '');
+      $('#edit_guardian').val(student.guardian || '');
+
+      // ✅ Show modal
+      $('#editPopup').removeClass('hidden');
+    })
+    .catch(err => {
+      console.error('Fetch error:', err);
+      alert('Failed to load student data.');
+    });
 });
+
+});
+
+
 
 function toggleMenu(button) {
   const menu = button.nextElementSibling;
@@ -187,20 +227,6 @@ function toggleMenu(button) {
     });
   }
 }
-
-document.addEventListener('click', function (e) {
-  const isMenu = e.target.closest('.dropdown-menu');
-  const isButton = e.target.closest('button[onclick^="toggleMenu"]');
-
-  if (!isMenu && !isButton) {
-    document.querySelectorAll('.dropdown-menu').forEach(el => {
-      el.style.display = 'none';
-      el.style.opacity = 0;
-      el.style.transform = 'translateY(-5px)';
-    });
-  }
-});
-
 
 document.getElementById('editForm').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -277,39 +303,6 @@ function showAlert(message, color = '#4CAF50') {
   }, 4000);
 }
 
-
-
-function openEditPopup(student) {
-  fetch('/api/students')
-    .then(res => res.json())
-    .then(data => {
-      const freshStudent = data.find(s => s.rfid === student.rfid || s.rfid_code === student.rfid);
-
-      if (!freshStudent) {
-        alert("Student not found in latest records.");
-        return;
-      }
-
-      $('#edit_rfid').val(freshStudent.rfid);
-      $('#edit_first_name').val(freshStudent.first_name);
-      $('#edit_middle_name').val(freshStudent.middle_name || '');
-      $('#edit_last_name').val(freshStudent.last_name);
-      $('#edit_age').val(freshStudent.age);
-      $('#edit_gender').val(freshStudent.gender);
-      $('#edit_grade').val(freshStudent.grade);
-      $('#edit_section').val(freshStudent.strandOrSec || freshStudent.section || '');
-      $('#edit_contact').val(freshStudent.contact);
-      $('#edit_address').val(freshStudent.address);
-      $('#edit_guardian').val(freshStudent.guardian);
-
-      $('#editPopup').removeClass('hidden');
-    })
-    .catch(err => {
-      console.error("Failed to fetch student data:", err);
-      alert("Error fetching student data. See console for details.");
-    });
-}
-
 function closeEditPopup() {
   $('#editPopup').addClass('hidden');
 }
@@ -343,3 +336,16 @@ function confirmDelete() {
       closeDeletePopup();
     });
 }
+
+document.addEventListener('click', function (e) {
+  const isMenu = e.target.closest('.dropdown-menu');
+  const isButton = e.target.closest('button[onclick^="toggleMenu"]');
+
+  if (!isMenu && !isButton) {
+    document.querySelectorAll('.dropdown-menu').forEach(el => {
+      el.style.display = 'none';
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(-5px)';
+    });
+  }
+});

@@ -9,7 +9,7 @@ from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_studen
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
-STUDENT_FILE = os.path.join(get_app_data_dir("CVE_REGISTER"), 'students.json')
+STUDENT_FILE = os.path.join(get_app_data_dir("CVE_REGISTER"), 'data.json')
 
 @api_bp.route('/api/photo/<filename>')
 def get_student_photo(filename):
@@ -118,37 +118,55 @@ def delete_student_by_rfid(rfid):
         with open(STUDENT_FILE, 'r') as f:
             students = json.load(f)
 
-        # Filter out the student with matching RFID
-        updated_students = [
-            s for s in students
-            if s.get('rfid') != rfid and s.get('rfid_code') != rfid
-        ]
+        photo_dir = get_photo_folder_path()
+        student_found = False
+        updated_students = []
 
-        if len(updated_students) == len(students):
+        for student in students:
+            if str(student.get('rfid')) == str(rfid) or str(student.get('rfid_code')) == str(rfid):
+                student_found = True
+                # Attempt to delete photo
+                avatar_path = student.get('avatar')
+                if avatar_path:
+                    try:
+                        photo_filename = os.path.basename(avatar_path)
+                        photo_full_path = os.path.join(photo_dir, photo_filename)
+                        if os.path.exists(photo_full_path):
+                            os.remove(photo_full_path)
+                    except Exception as e:
+                        print(f"Error deleting photo: {e}")
+                continue  # Skip adding this student (we're deleting)
+            updated_students.append(student)
+
+        if not student_found:
             return jsonify({'error': 'Student not found'}), 404
 
         with open(STUDENT_FILE, 'w') as f:
             json.dump(updated_students, f, indent=2)
 
-        return jsonify({'message': 'Student deleted successfully'}), 200
+        return jsonify({'message': 'Student and photo deleted successfully'}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+ 
 @api_bp.route('/api/students/<rfid>', methods=['PUT'])
 def update_student_by_rfid(rfid):
     if not os.path.exists(STUDENT_FILE):
-        return jsonify({'error': 'data.json not found'}), 404
+        return jsonify({'error': 'students.json not found'}), 404
+
+    if not request.is_json:
+        return jsonify({'error': 'Request must be JSON'}), 400
+
+    updated_data = request.get_json()
 
     try:
-        updated_data = request.json
-
         with open(STUDENT_FILE, 'r') as f:
             students = json.load(f)
 
         student_found = False
         for student in students:
-            if student.get('rfid') == rfid or student.get('rfid_code') == rfid:
+            student_rfid = student.get('rfid') or student.get('rfid_code')
+            if student_rfid == rfid:
                 student.update(updated_data)
                 student_found = True
                 break
@@ -163,6 +181,7 @@ def update_student_by_rfid(rfid):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
