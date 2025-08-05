@@ -57,6 +57,7 @@ def register_student():
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
     student_file = get_student_file_path()
+    log_type = request.args.get('type', '').lower()
 
     if not os.path.exists(student_file):
         return jsonify([])
@@ -64,17 +65,25 @@ def get_logs():
     with open(student_file, 'r') as f:
         students = json.load(f)
 
-    # Optional: sort by recent time if `timestamp` exists
-    students.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+     # Filter based on type parameter
+    if log_type == 'employee':
+        filtered_students = [s for s in students if s.get('occupation', '').lower() == 'employee']
+    elif log_type == 'student':
+        filtered_students = [s for s in students if s.get('occupation', '').lower() == 'student']
+    else:
+        filtered_students = students  # No filter if type is not specified or invalid
 
-    for student in students:
+    # Optional: sort by recent time if `timestamp` exists
+    filtered_students.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+
+    for student in filtered_students:
         photo_filename = student.get("photo")
         if photo_filename:
             student["avatar"] = url_for('api.get_student_photo', filename=photo_filename, _external=True)
         else:
             student["avatar"] = None
 
-    return jsonify(students)
+    return jsonify(filtered_students)
 
 @api_bp.route('/api/students', methods=['GET'])
 def get_students():
@@ -84,15 +93,21 @@ def get_students():
     with open(STUDENT_FILE, 'r') as f:
         students = json.load(f)
 
+    # Filter to include both students and records without occupation field
+    student_list = [
+        student for student in students 
+        if 'occupation' not in student or str(student.get('occupation', '')).lower() == 'student'
+    ]
+
     # Attach avatar URLs if photo exists
-    for student in students:
+    for student in student_list:
         photo_filename = student.get("photo")
         if photo_filename:
             student["avatar"] = url_for('api.get_student_photo', filename=photo_filename, _external=True)
         else:
             student["avatar"] = None
 
-    return jsonify(students)
+    return jsonify(student_list)
 
 @api_bp.route('/api/students/<rfid>', methods=['DELETE'])
 def delete_student_by_rfid(rfid):
@@ -227,12 +242,12 @@ def log_attendance():
         "strandOrSec": matched_student.get("section", ""),
         "gender": matched_student.get("gender", ""),
         "guardian": matched_student.get("guardian", ""),
+        "occupation": matched_student.get("occupation", ""),
         "contact": matched_student.get("contact", ""),
         "address": matched_student.get("address", ""),
         "photo": photo_filename,
         "avatar": avatar_url
         }
-
 
         # Append log and save
         logs.append(log_entry)
@@ -304,6 +319,67 @@ def reset_admin_credentials():
             "message": f"Failed to reset credentials: {str(e)}"
         }), 500
 
+@api_bp.route('/api/update-employee', methods=['POST'])
+def update_attendance():
+    try:
+        data = request.json
+        rfid = data.get('rfid')
+        date = data.get('date')
+        time_in = data.get('time_in')
+        time_out = data.get('time_out')
+        original_time_in = data.get('original_time_in')
+        original_time_out = data.get('original_time_out')
+
+        if not all([rfid, date, time_in]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Load the logs file
+        log_file_path = get_student_file_path()
+        if not os.path.exists(log_file_path):
+            return jsonify({'error': 'Logs file not found'}), 404
+
+        with open(log_file_path, 'r') as f:
+            logs = json.load(f)
+
+        # Convert input date/time to datetime objects
+        new_time_in_dt = datetime.strptime(f"{date}T{time_in}", "%Y-%m-%dT%H:%M")
+        if time_out:
+            new_time_out_dt = datetime.strptime(f"{date}T{time_out}", "%Y-%m-%dT%H:%M")
+            if new_time_out_dt <= new_time_in_dt:
+                return jsonify({'error': 'Time out must be after time in'}), 400
+
+        updated = False
+
+        # Update the logs
+        for log in logs:
+            if log.get('rfid') == rfid:
+                log_dt = datetime.fromisoformat(log['timestamp'])
+                log_date = log_dt.date().isoformat()
+                
+                # Check if this log matches the original time in/out we're updating
+                if (original_time_in and log['timestamp'] == original_time_in) or \
+                   (original_time_out and log['timestamp'] == original_time_out):
+                    
+                    # Update the timestamp
+                    if log['status'] == 'IN':
+                        log['timestamp'] = new_time_in_dt.isoformat()
+                        updated = True
+                    elif log['status'] == 'OUT' and time_out:
+                        log['timestamp'] = new_time_out_dt.isoformat()
+                        updated = True
+
+        if updated:
+            # Save the updated logs
+            with open(log_file_path, 'w') as f:
+                json.dump(logs, f, indent=2)
+            
+            return jsonify({'message': 'Attendance updated successfully'}), 200
+        else:
+            return jsonify({'error': 'No matching records found to update'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @api_bp.route('/api/admin-logout')
 def admin_logout():
     resp = make_response(redirect(url_for('pages.admin_login')))

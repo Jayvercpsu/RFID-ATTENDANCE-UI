@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -7,11 +8,13 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/employee-logs.css') }}" />
- <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
 
   <title>RFID Attendance - Employee Logs</title>
 </head>
+
 <body>
 
   <!-- sidebar -->
@@ -29,10 +32,10 @@
           <span class="text">Employee Attendance Logs</span>
         </div>
 
-       <div class="mb-4" style="text-align: left;">
-        <button class="btn-export" onclick="exportToExcel()">
+        <div class="mb-4" style="text-align: left;">
+          <button class="btn-export" onclick="exportToExcel()">
             <i class="uil uil-file-download"></i> Download Excel
-        </button>
+          </button>
         </div>
 
 
@@ -40,68 +43,67 @@
           <table id="employeeLogsTable" class="display">
             <thead>
               <tr>
-                <th>Employee ID</th>
+                <th>Photo</th>
                 <th>Full Name</th>
                 <th>Date</th>
                 <th>Time In</th>
                 <th>Time Out</th>
                 <th>Total Hours</th>
-                <th>RFID Code</th>
-                <th>Status</th>
                 <th>Remarks</th>
-                <th>Edit</th>
+                <th>Action</th>
               </tr>
             </thead>
-            <tbody>
-              <!-- Static sample data -->
-              <tr>
-                <td>EMP001</td>
-                <td>Jayver Algadipe</td>
-                <td>2025-08-03</td>
-                <td>08:00</td>
-                <td>17:00</td>
-                <td>9 hrs</td>
-                <td>RFID00123</td>
-                <td>Present</td>
-                <td><input type="text" placeholder="Remarks..." /></td>
-                <td><button class="btn-save">Save</button></td>
-              </tr>
-              <tr>
-                <td>EMP002</td>
-                <td>Maria Santos</td>
-                <td>2025-08-03</td>
-                <td>09:15</td>
-                <td>18:05</td>
-                <td>8.8 hrs</td>
-                <td>RFID00456</td>
-                <td>Present</td>
-                <td><input type="text" placeholder="Remarks..." /></td>
-                <td><button class="btn-save">Save</button></td>
-              </tr>
+            <tbody id="logsBody">
             </tbody>
           </table>
         </div>
 
         <p class="note mt-3">
-          <strong>Note:</strong> RFID logs are automatically recorded and serve as a backup for verification. Any changes must be reviewed by HR.
+          <strong>Note:</strong> RFID logs are automatically recorded and serve as a backup for verification. Any
+          changes must be reviewed by HR.
         </p>
       </div>
     </div>
   </section>
+  <!-- Edit Popup -->
+   <!-- Edit Popup -->
+  <div id="editPopup" class="popup hidden">
+    <div class="popup-backdrop" onclick="closeEditPopup()"></div>
+    <div class="popup-box">
+      <span class="close" onclick="closeEditPopup()">&times;</span>
+      <h3 class="popup-title">Edit Attendance Record</h3>
+      <form id="editForm" class="popup-form">
+        <input type="hidden" id="edit_log_id" />
+        <input type="hidden" id="edit_rfid" />
+        
+        <label>Date:
+          <input type="date" id="edit_date" required />
+        </label>
+        
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label>Time In:
+              <input type="time" id="edit_time_in" required />
+            </label>
+          </div>
+          <div style="flex: 1;">
+            <label>Time Out:
+              <input type="time" id="edit_time_out" />
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-submit">Update Record</button>
+      </form>
+    </div>
+  </div>
 
   <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-
-  <script>
-    $(document).ready(function () {
-      $('#employeeLogsTable').DataTable();
-    });
-
-    function exportToExcel() {
-      alert("This will export to Excel (hook to backend logic)");
-    }
-  </script>
+  <script src="{{ url_for('static', filename='js/get-employee-logs.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 
 </body>
+
 </html>
