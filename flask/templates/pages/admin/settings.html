@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFID Attendance Admin Settings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}" />
+</head>
+
+<body>
+
+  <!-- sidebar -->
+  {% include('pages/admin/header-sections/sidebar.html') %}
+
+  <section class="dashboard">
+    <div class="top">
+      <i class="uil uil-bars sidebar-toggle"></i>
+    </div>
+
+    <div class="dash-content">
+      <!-- Profile Settings Section -->
+      <div class="settings-section">
+        <div class="title">
+          <i class="uil uil-user-circle"></i>
+          <span class="text">Profile Settings</span>
+        </div>
+
+        <div class="settings-card">
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <div class="input-group">
+                <input type="text" id="username" name="username" value="admin" required>
+                <i class="uil uil-user"></i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <div class="input-group">
+                <input type="password" id="currentPassword" name="currentPassword" required>
+                <i class="uil uil-lock"></i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <div class="input-group">
+                <input type="password" id="newPassword" name="newPassword">
+                <i class="uil uil-lock-access"></i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <div class="input-group">
+                <input type="password" id="confirmPassword" name="confirmPassword">
+                <i class="uil uil-shield-check"></i>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-save">
+              <i class="uil uil-save"></i> Update Profile
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Backup Settings Section -->
+      <div class="settings-section">
+        <div class="title">
+          <i class="uil uil-server"></i>
+          <span class="text">Backup Settings</span>
+        </div>
+
+        <div class="settings-card">
+          <form id="backupForm">
+            <div class="form-group">
+              <label for="backupLocation">Backup Location</label>
+              <div class="input-group">
+                <input type="text" id="backupLocation" name="backupLocation"
+                  placeholder="Enter backup path e.g. D:\\Projects" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-backup" onclick="createBackup()">
+                <i class="uil uil-download-alt"></i> Create Backup Now
+              </button>
+              <button type="button" class="btn-restore" onclick="restoreBackup()">
+                <i class="uil uil-history"></i> Restore Backup
+              </button>
+            </div>
+            <input type="file" id="restoreFileInput" accept=".zip" style="display:none;" />
+          </form>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+
+</html>

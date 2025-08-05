@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/employee-logs.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/toastr.min.css') }}" />
+
+  <title>RFID Attendance - Employee Logs</title>
+</head>
+
+<body>
+
+  <!-- sidebar -->
+  {% include('pages/admin/header-sections/sidebar.html') %}
+
+  <section class="dashboard">
+    <div class="top">
+      <i class="uil uil-bars sidebar-toggle"></i>
+    </div>
+
+    <div class="dash-content">
+      <div class="overview">
+        <div class="title">
+          <i class="uil uil-clipboard-notes"></i>
+          <span class="text">Employee Attendance Logs</span>
+        </div>
+
+        <div class="mb-4" style="text-align: left;">
+          <button class="btn-export" onclick="exportToExcel()">
+            <i class="uil uil-file-download"></i> Download Excel
+          </button>
+        </div>
+
+
+        <div class="table-container" style="overflow-x:auto;">
+          <table id="employeeLogsTable" class="display">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Full Name</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Total Hours</th>
+                <th>Remarks</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody">
+            </tbody>
+          </table>
+        </div>
+
+        <p class="note mt-3">
+          <strong>Note:</strong> RFID logs are automatically recorded and serve as a backup for verification. Any
+          changes must be reviewed by HR.
+        </p>
+      </div>
+    </div>
+  </section>
+  <!-- Edit Popup -->
+   <!-- Edit Popup -->
+  <div id="editPopup" class="popup hidden">
+    <div class="popup-backdrop" onclick="closeEditPopup()"></div>
+    <div class="popup-box">
+      <span class="close" onclick="closeEditPopup()">&times;</span>
+      <h3 class="popup-title">Edit Attendance Record</h3>
+      <form id="editForm" class="popup-form">
+        <input type="hidden" id="edit_log_id" />
+        <input type="hidden" id="edit_rfid" />
+        
+        <label>Date:
+          <input type="date" id="edit_date" required />
+        </label>
+        
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label>Time In:
+              <input type="time" id="edit_time_in" required />
+            </label>
+          </div>
+          <div style="flex: 1;">
+            <label>Time Out:
+              <input type="time" id="edit_time_out" />
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-submit">Update Record</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/xlsx.full.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/get-employee-logs.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+
+</body>
+
+</html>

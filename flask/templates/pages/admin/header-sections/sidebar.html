@@ -1,0 +1,89 @@
+<link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
+
+<nav>
+  <div class="logo-name">
+    <div class="logo">CVE</div>
+    <span class="logo_name">Colleges Inc.</span>
+  </div>
+  <div class="menu-items">
+    <ul class="nav-links">
+      <li>
+        <a href="{{ url_for('pages.admin_dashboard') }}">
+          <i class="uil uil-estate"></i>
+          <span class="link-name">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_students') }}">
+          <i class="uil uil-user"></i> <!-- Changed from uil-user -->
+          <span class="link-name">Students</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_attendance_logs') }}">
+          <i class="uil uil-calendar-alt"></i>
+          <span class="link-name">Attendance Logs</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_employee_logs') }}">
+          <i class="uil uil-users-alt"></i> <!-- Changed from uil-user -->
+          <span class="link-name">Employee Logs</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_settings') }}">
+          <i class="uil uil-setting"></i>
+          <span class="link-name">Settings</span>
+        </a>
+      </li>
+    </ul>
+
+    <ul class="logout-mode">
+      <li>
+        <a onclick="openLogoutPopup()" style="cursor: pointer;">
+          <i class="uil uil-signout"></i>
+          <span class="link-name">Logout</span>
+        </a>
+      </li>
+
+      <li class="mode">
+        <a href="#">
+          <i class="uil uil-moon"></i>
+          <span class="link-name">Dark Mode</span>
+        </a>
+        <div class="mode-toggle">
+          <span class="switch"></span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div id="logoutPopup" class="popup hidden">
+  <div class="popup-backdrop" onclick="closeLogoutPopup()"></div>
+  <div class="popup-box">
+    <span class="close" onclick="closeLogoutPopup()">&times;</span>
+    <div class="popup-title">Confirm Logout</div>
+    <p class="popup-message">Are you sure you want to logout?</p>
+    <div class="popup-actions">
+      <button class="btn-delete-confirm" onclick="confirmLogout()">Yes, Logout</button>
+      <button class="btn-cancel" onclick="closeLogoutPopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openLogoutPopup() {
+    document.getElementById('logoutPopup').classList.remove('hidden');
+  }
+
+  function closeLogoutPopup() {
+    document.getElementById('logoutPopup').classList.add('hidden');
+  }
+
+  function confirmLogout() {
+    window.location.href = "{{ url_for('api.admin_logout') }}";
+  }
+</script>

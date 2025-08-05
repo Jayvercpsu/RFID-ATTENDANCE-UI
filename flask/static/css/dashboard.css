@@ -131,6 +131,88 @@ nav .menu-items {
 body.dark li a:hover:before {
   background-color: var(--text-color);
 }
+
+body.dark table, p, .edit-ellipsis {
+  color: var(--text-color) !important;
+}
+
+/* Dark Mode DataTable Styles */
+body.dark .dataTables_wrapper {
+    color: #e0e0e0 !important;
+}
+
+body.dark .dataTables_wrapper .dataTables_length,
+body.dark .dataTables_wrapper .dataTables_filter,
+body.dark .dataTables_wrapper .dataTables_info,
+body.dark .dataTables_wrapper .dataTables_paginate {
+    color: #e0e0e0 !important;
+}
+
+body.dark #employeeLogsTable {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #444;
+}
+
+body.dark #employeeLogsTable thead th {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #444;
+}
+
+body.dark #employeeLogsTable tbody tr {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark #employeeLogsTable tbody tr:nth-child(even) {
+    background-color: #252525;
+}
+
+body.dark #employeeLogsTable tbody tr:hover {
+    background-color: #3a3a3a;
+}
+
+/* Inputs and Selects */
+body.dark .dataTables_wrapper select,
+body.dark .dataTables_wrapper input {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+/* Pagination */
+body.dark .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #e0e0e0 !important;
+    background: #333 !important;
+    border: 1px solid #555 !important;
+}
+
+body.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+body.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #4CAF50 !important;
+    color: white !important;
+    border: 1px solid #4CAF50 !important;
+}
+
+body.dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #555 !important;
+    color: white !important;
+}
+
+.btn-save {
+  background-color: #3c91e6;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  background-color: #1d4ed8;
+}
+
 .menu-items li a i {
   font-size: 24px;
   min-width: 45px;

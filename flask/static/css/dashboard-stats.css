@@ -1,0 +1,52 @@
+:root {
+  --primary-color: #4a90e2; /* You can change this to match your theme */
+  --box-bg: #f9f9f9;
+  --text-dark: #222;
+  --text-light: #777;
+}
+
+.boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+}
+
+.box {
+  flex: 1 1 calc(33.333% - 12px); /* 3 per row with spacing */
+  background: var(--box-bg);
+  padding: 14px 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  transition: all 0.25s ease;
+  min-width: 160px;
+  cursor: pointer;
+  border: 1px solid #e5e5e5;
+}
+
+.box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+}
+
+.box i {
+  font-size: 22px;
+  color: var(--primary-color);
+  margin-bottom: 6px;
+}
+
+.box .text {
+  display: block;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 3px;
+}
+
+.box .number {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+}

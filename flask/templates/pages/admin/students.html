@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <title>RFID Attendance - Students</title>
+</head>
+<body>
+
+    <!-- sidebar -->
+    {% include('pages/admin/header-sections/sidebar.html') %}
+
+<div id="alertBox" style="
+  position: fixed;
+  top: 20px;
+  right: -400px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  transition: right 0.5s ease, opacity 0.5s ease;
+  z-index: 9999;
+  opacity: 0;
+">
+  <span id="alertMessage">Message</span>
+  <div id="alertProgress" style="
+    height: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    width: 0%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transition: width 4s linear;
+  "></div>
+</div>
+
+  <section class="dashboard">
+    <div class="top">
+      <i class="uil uil-bars sidebar-toggle"></i>
+    </div>
+
+    <div class="dash-content">
+      <div class="overview">
+        <div class="title"> 
+          <i class="uil uil-users-alt"></i>
+          <span class="text">Student List</span>
+        </div>
+
+        <div class="table-container" style="overflow-x:auto;">
+          <table id="studentsTable" class="display">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Student ID</th>
+                <th>First Name</th>
+                <th>Middle Name</th>
+                <th>Last Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Grade</th>
+                <th>Section</th>
+                <th>Contact</th>
+                <th>Address</th>
+                <!-- <th>Guardian</th> -->
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody">
+            <!-- Dynamically filled with JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- Edit Popup -->
+<div id="editPopup" class="popup hidden">
+  <div class="popup-backdrop" onclick="closeEditPopup()"></div>
+  <div class="popup-box">
+    <span class="close" onclick="closeEditPopup()">&times;</span>
+    <h3 class="popup-title">Edit Student</h3>
+    <form id="editForm" class="popup-form" onsubmit="return false;">
+      <input type="hidden" id="edit_rfid" name="rfid" />
+      <div class="popup-grid">
+        <div>
+          <label>First Name:
+            <input type="text" id="edit_first_name" required />
+          </label>
+          <label>Middle Name:
+            <input type="text" id="edit_middle_name" required />
+          </label>
+          <label>Last Name:
+            <input type="text" id="edit_last_name" required />
+          </label>
+          <label>Age:
+            <input type="number" id="edit_age" min="1" />
+          </label>
+          <label>Gender:
+            <input type="text" id="edit_gender" />
+          </label>
+        </div>
+        <div>
+          <label>Grade:
+            <input type="text" id="edit_grade" />
+          </label>
+          <label>Section:
+            <input type="text" id="edit_section" />
+          </label>
+          <label>Contact:
+            <input type="text" id="edit_contact" />
+          </label>
+          <label>Address:
+            <input type="text" id="edit_address" />
+          </label>
+        </div>
+      </div>
+      <label>Guardian:
+        <input type="text" id="edit_guardian" />
+      </label>
+      <button type="submit" class="btn-submit">Update</button>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Popup -->
+<div id="deletePopup" class="popup hidden">
+  <div class="popup-backdrop" onclick="closeDeletePopup()"></div>
+  <div class="popup-box">
+    <span class="close" onclick="closeDeletePopup()">&times;</span>
+    <h3 class="popup-title">Confirm Delete</h3>
+    <p class="popup-message">Are you sure you want to delete this student?</p>
+    <div class="popup-actions">
+      <button onclick="confirmDelete()" class="btn-delete-confirm">Yes, Delete</button>
+      <button onclick="closeDeletePopup()" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+  <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>
