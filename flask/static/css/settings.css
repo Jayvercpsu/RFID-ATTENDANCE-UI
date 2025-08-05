@@ -1,0 +1,142 @@
+/* Settings Page Styles */
+.settings-section {
+  background: #fff;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.settings-card {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.input-group i {
+  position: absolute;
+  left: 15px;
+  color: #777;
+}
+
+.input-group .btn-browse {
+  margin-left: 10px;
+  padding: 10px 15px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.input-group .btn-browse:hover {
+  background: #45a049;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.btn-save:hover {
+  background: #45a049;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-backup, .btn-restore {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-backup {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-backup:hover {
+  background: #0b7dda;
+}
+
+.btn-restore {
+  background: #ff9800;
+  color: white;
+}
+
+.btn-restore:hover {
+  background: #e68a00;
+}
+
+.hint {
+  color: #777;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Dark Mode Support */
+.dark-mode .settings-section,
+.dark-mode .settings-card {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group label {
+  color: #e0e0e0;
+}
+
+.dark-mode .input-group input {
+  background: #333;
+  color: #fff;
+  border-color: #555;
+}
+
+.dark-mode .input-group i {
+  color: #aaa;
+}
+
+.dark-mode .hint {
+  color: #aaa;
+}

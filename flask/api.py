@@ -261,6 +261,7 @@ def log_attendance():
         "gender": matched_student.get("gender", ""),
         "guardian": matched_student.get("guardian", ""),
         "occupation": matched_student.get("occupation", ""),
+        "id_number": matched_student.get("id_number", ""),
         "contact": matched_student.get("contact", ""),
         "address": matched_student.get("address", ""),
         "photo": photo_filename,
