@@ -1,5 +1,6 @@
 import shutil
 import zipfile
+import bcrypt
 from flask import Blueprint, request, jsonify
 import os
 import json
@@ -22,19 +23,21 @@ def get_settings():
 def update_profile():
     data = request.json
     admin_data = load_admin()
-    
-    # Validate current password
-    if 'currentPassword' not in data or data['currentPassword'] != admin_data.get("password"):
+
+    # Validate current password using bcrypt
+    current_pw = data.get("currentPassword")
+    if not current_pw or not bcrypt.checkpw(current_pw.encode(), admin_data["password"].encode()):
         return jsonify({"error": "Current password is incorrect"}), 401
-    
-    # Update username if provided
-    if 'username' in data:
-        admin_data['username'] = data['username']
-    
-    # Update password if new password provided
-    if 'newPassword' in data and data['newPassword']:
-        admin_data['password'] = data['newPassword']
-    
+
+    # Update username
+    if "username" in data and data["username"]:
+        admin_data["username"] = data["username"]
+
+    # Update password (hash new password)
+    if "newPassword" in data and data["newPassword"]:
+        hashed_pw = bcrypt.hashpw(data["newPassword"].encode(), bcrypt.gensalt()).decode()
+        admin_data["password"] = hashed_pw
+
     save_admin(admin_data)
     return jsonify({"message": "Profile updated successfully"})
 
@@ -69,6 +72,10 @@ def create_backup():
                             file_path = os.path.join(root, f)
                             arcname = os.path.join(folder, os.path.relpath(file_path,folder_path))
                             z.write(file_path, arcname)
+
+        admin_data = load_admin()
+        admin_data['backup_path'] = backup_path
+        save_admin(admin_data)
         return jsonify({"success": True,"backup_path":backup_full })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

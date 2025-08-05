@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import bcrypt
 from flask import Blueprint, make_response, redirect, request, jsonify, send_from_directory, url_for
 import os
 import json
@@ -341,7 +342,7 @@ def admin_login():
 
     admin = load_admin()
 
-    if username == admin['username'] and password == admin['password']:
+    if username == admin["username"] and bcrypt.checkpw(password.encode(), admin["password"].encode()):
         exp = datetime.utcnow() + timedelta(hours=24)
         token = jwt.encode({"username": username, "exp": exp}, SECRET_KEY, algorithm="HS256")
 
