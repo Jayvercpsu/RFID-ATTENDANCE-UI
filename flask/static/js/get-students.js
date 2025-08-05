@@ -15,8 +15,8 @@ $(document).ready(function () {
         row.innerHTML = `
   <td class="col-avatar"> 
     ${student.avatar
-          ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
-          : 'N/A'}
+            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
+            : 'N/A'}
   </td>
   <td class="col-id-number">${student.id_number || ''}</td>
   <td class="col-first_name">${student.first_name || ''}</td>
@@ -29,14 +29,10 @@ $(document).ready(function () {
   <td class="col-contact">${student.contact || ''}</td>
   <td class="col-address">${student.address || ''}</td>
  
- <td style="position: relative; overflow: visible;text-align: left;">
+ <td style="position: relative; overflow: visible; text-align: left;">
   <div style="position: relative; display: inline-block;">
     <!-- Three Dots Button -->
-    <button class="btn-save" onclick="toggleMenu(this)" style="
-      cursor: pointer;
-      z-index: 2;
-      position: relative;
-    ">
+    <button class="btn-save" onclick="toggleMenu(this)" style="cursor: pointer; z-index: 2; position: relative;">
       <i class="fas fa-ellipsis-v"></i>
     </button>
 
@@ -46,9 +42,7 @@ $(document).ready(function () {
       opacity: 0;
       transform: translateY(-5px);
       transition: opacity 0.2s ease, transform 0.2s ease;
-      position: fixed;
-      top: 0;
-      left: 0;
+      position: absolute;
       z-index: 3;
       min-width: 140px;
       background: #fff;
@@ -56,6 +50,8 @@ $(document).ready(function () {
       border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       padding: 4px 0;
+      right: 0;
+      top: 100%;
     ">
       <button class="btn-edit" data-rfid="${student.rfid || student.rfid_code}" style="
         display: flex;
@@ -92,6 +88,7 @@ $(document).ready(function () {
     </div>
   </div>
 </td>
+
         `;
         tbody.appendChild(row);
       });
@@ -102,7 +99,7 @@ $(document).ready(function () {
       studentsTable = $('#studentsTable').DataTable();
     });
 
-  // Submit Edit Form
+
   $('#editForm').submit(function (e) {
     e.preventDefault();
 
@@ -147,82 +144,95 @@ $(document).ready(function () {
       });
   });
 
-// Handle Edit Button (delegated)
-$(document).on('click', '.btn-edit', function () {
-  const rfid = $(this).data('rfid');
 
-  fetch('/api/students')
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to fetch student list');
-      return res.json();
-    })
-    .then(data => {
-      const student = data.find(s => s.rfid === rfid || s.rfid_code === rfid);
-      if (!student) {
-        alert('Student not found.');
-        return;
-      }
+  $(document).on('click', '.btn-edit', function () {
+    const rfid = $(this).data('rfid');
 
-      // ✅ Use fallback RFID to ensure value exists in modal and API request
-      const resolvedRfid = student.rfid || student.rfid_code;
-      if (!resolvedRfid) {
-        alert('Missing RFID or RFID code. Cannot edit this student.');
-        return;
-      }
+    fetch('/api/students')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch student list');
+        return res.json();
+      })
+      .then(data => {
+        const student = data.find(s => s.rfid === rfid || s.rfid_code === rfid);
+        if (!student) {
+          alert('Student not found.');
+          return;
+        }
 
-      // ✅ Set hidden field with correct RFID for use in PUT /api/students/:rfid
-      $('#edit_rfid').val(resolvedRfid);
 
-      // ✅ Populate modal fields
-      $('#edit_first_name').val(student.first_name || '');
-      $('#edit_middle_name').val(student.middle_name || '');
-      $('#edit_last_name').val(student.last_name || '');
-      $('#edit_age').val(student.age || '');
-      $('#edit_gender').val(student.gender || '');
-      $('#edit_grade').val(student.grade || '');
-      $('#edit_section').val(student.strandOrSec || student.section || '');
-      $('#edit_contact').val(student.contact || '');
-      $('#edit_address').val(student.address || '');
-      $('#edit_guardian').val(student.guardian || '');
+        const resolvedRfid = student.rfid || student.rfid_code;
+        if (!resolvedRfid) {
+          alert('Missing RFID or RFID code. Cannot edit this student.');
+          return;
+        }
 
-      // ✅ Show modal
-      $('#editPopup').removeClass('hidden');
-    })
-    .catch(err => {
-      console.error('Fetch error:', err);
-      alert('Failed to load student data.');
-    });
-});
+
+        $('#edit_rfid').val(resolvedRfid);
+
+
+        $('#edit_first_name').val(student.first_name || '');
+        $('#edit_middle_name').val(student.middle_name || '');
+        $('#edit_last_name').val(student.last_name || '');
+        $('#edit_age').val(student.age || '');
+        $('#edit_gender').val(student.gender || '');
+        $('#edit_grade').val(student.grade || '');
+        $('#edit_section').val(student.strandOrSec || student.section || '');
+        $('#edit_contact').val(student.contact || '');
+        $('#edit_address').val(student.address || '');
+        $('#edit_guardian').val(student.guardian || '');
+
+
+        $('#editPopup').removeClass('hidden');
+      })
+      .catch(err => {
+        console.error('Fetch error:', err);
+        alert('Failed to load student data.');
+      });
+  });
 
 });
 
 
 
 function toggleMenu(button) {
-  const menu = button.nextElementSibling;
-  const isVisible = menu.style.display === 'block';
+  const menu = button.parentElement.querySelector(".dropdown-menu");
 
-  document.querySelectorAll('.dropdown-menu').forEach(el => {
-    el.style.display = 'none';
-    el.style.opacity = 0;
-    el.style.transform = 'translateY(-5px)';
+  document.querySelectorAll('.dropdown-menu').forEach(m => {
+    if (m !== menu) {
+      m.style.display = 'none';
+      m.style.opacity = 0;
+      m.style.transform = 'translateY(-5px)';
+    }
   });
 
-  if (!isVisible) {
-    const rect = button.getBoundingClientRect();
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+  const isOpen = menu.style.display === 'block';
 
-    menu.style.top = `${rect.bottom + scrollTop}px`;
-    menu.style.left = `${rect.right + scrollLeft - 150}px`;
+  if (isOpen) {
+    menu.style.display = 'none';
+    menu.style.opacity = 0;
+    menu.style.transform = 'translateY(-5px)';
+  } else {
     menu.style.display = 'block';
-
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       menu.style.opacity = 1;
       menu.style.transform = 'translateY(0)';
-    });
+    }, 10);
   }
 }
+
+document.addEventListener('click', (e) => {
+  const isMenu = e.target.closest('.dropdown-menu');
+  const isButton = e.target.closest('.btn-save');
+
+  if (!isMenu && !isButton) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      menu.style.display = 'none';
+      menu.style.opacity = 0;
+      menu.style.transform = 'translateY(-5px)';
+    });
+  }
+});
 
 document.getElementById('editForm').addEventListener('submit', async function (e) {
   e.preventDefault();
