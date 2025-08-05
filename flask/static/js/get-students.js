@@ -29,7 +29,7 @@ $(document).ready(function () {
             ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
             : 'N/A'}
   </td>
- <td style="position: relative;">
+ <td style="position: relative; overflow: visible; z-index: 1;">
   <div style="position: relative; display: inline-block;">
     <!-- Three Dots Button -->
     <button onclick="toggleMenu(this)" style="
@@ -37,6 +37,8 @@ $(document).ready(function () {
       border: none; 
       font-size: 20px; 
       cursor: pointer;
+      z-index: 2;
+      position: relative;
     ">
       <i class="fas fa-ellipsis-v"></i>
     </button>
@@ -47,15 +49,15 @@ $(document).ready(function () {
       opacity: 0;
       transform: translateY(-5px);
       transition: opacity 0.2s ease, transform 0.2s ease;
-      position: absolute;
-      top: -5px;
-      right: 28px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      min-width: 140px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 1000;
-      min-width: 140px;
       padding: 4px 0;
     ">
       <button onclick='openEditPopup(${JSON.stringify(student)})' style="
@@ -74,7 +76,7 @@ $(document).ready(function () {
         <span>Edit</span>
         <i class="fas fa-pen"></i>
       </button>
-      <button onclick='openDeletePopup("${student.rfid || student.rfid_code}")' style="
+      <button onclick='openDeletePopup(\"${student.rfid || student.rfid_code}\")' style="
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -93,6 +95,7 @@ $(document).ready(function () {
     </div>
   </div>
 </td>
+
   `;
         tbody.appendChild(row);
       });
@@ -164,7 +167,7 @@ function toggleMenu(button) {
   const menu = button.nextElementSibling;
   const isVisible = menu.style.display === 'block';
 
-  // Close any other open menus
+  // Close all other dropdowns
   document.querySelectorAll('.dropdown-menu').forEach(el => {
     el.style.display = 'none';
     el.style.opacity = 0;
@@ -172,23 +175,35 @@ function toggleMenu(button) {
   });
 
   if (!isVisible) {
+    // Get button position
+    const rect = button.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+    menu.style.top = `${rect.bottom + scrollTop}px`;
+    menu.style.left = `${rect.right + scrollLeft - 150}px`; // Adjust left offset
     menu.style.display = 'block';
+
     requestAnimationFrame(() => {
       menu.style.opacity = 1;
       menu.style.transform = 'translateY(0)';
     });
   }
 }
-// Optional: Close dropdown when clicking outside
+
 document.addEventListener('click', function (e) {
-  if (!e.target.closest('td')) {
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-      menu.style.display = 'none';
-      menu.style.opacity = 0;
-      menu.style.transform = 'translateY(-5px)';
+  const isMenu = e.target.closest('.dropdown-menu');
+  const isButton = e.target.closest('button[onclick^="toggleMenu"]');
+
+  if (!isMenu && !isButton) {
+    document.querySelectorAll('.dropdown-menu').forEach(el => {
+      el.style.display = 'none';
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(-5px)';
     });
   }
 });
+
 
 document.getElementById('editForm').addEventListener('submit', async function (e) {
   e.preventDefault();
