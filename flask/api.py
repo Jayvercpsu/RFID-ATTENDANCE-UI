@@ -5,6 +5,7 @@ import os
 import json
 
 import jwt
+from db import get_db_connection
 from utils.auth_utils import SECRET_KEY
 from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin, save_admin
 from werkzeug.utils import secure_filename
@@ -57,34 +58,30 @@ def register_student():
 
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
-    student_file = get_student_file_path()
     log_type = request.args.get('type', '').lower()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    if not os.path.exists(student_file):
-        return jsonify([])
-
-    with open(student_file, 'r') as f:
-        students = json.load(f)
-
-     # Filter based on type parameter
-    if log_type == 'employee':
-        filtered_students = [s for s in students if s.get('occupation', '').lower() == 'employee']
-    elif log_type == 'student':
-        filtered_students = [s for s in students if s.get('occupation', '').lower() == 'student']
+    if log_type in ("student", "employee"):
+        cur.execute(
+            "SELECT * FROM attendance WHERE lower(occupation)=? ORDER BY timestamp DESC",
+            (log_type,)
+        )
     else:
-        filtered_students = students  # No filter if type is not specified or invalid
+        cur.execute("SELECT * FROM attendance ORDER BY timestamp DESC")
 
-    # Optional: sort by recent time if `timestamp` exists
-    filtered_students.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+    rows = cur.fetchall()
+    logs = [dict(r) for r in rows]
 
-    for student in filtered_students:
-        photo_filename = student.get("photo")
-        if photo_filename:
-            student["avatar"] = url_for('api.get_student_photo', filename=photo_filename, _external=True)
+    for log in logs:
+        photo = log.get("photo")
+        if photo:
+            log["avatar"] = url_for('api.get_student_photo', filename=photo, _external=True)
         else:
-            student["avatar"] = None
+            log["avatar"] = None
 
-    return jsonify(filtered_students)
+    conn.close()
+    return jsonify(logs)
 
 @api_bp.route('/api/students', methods=['GET'])
 def get_students():
@@ -185,145 +182,103 @@ def update_student_by_rfid(rfid):
 
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
-    log_file_path = get_student_file_path()
-    student_file_path = os.path.join(get_app_data_dir(), "data.json")
+    data = request.json
+    rfid_code = data.get("rfid")
+    if not rfid_code:
+        return jsonify({"error":"RFID is required"}),400
 
-    try:
-        data = request.json
-        rfid_code = data.get("rfid")
+    # find matched student in data.json
+    people_file_path = os.path.join(get_app_data_dir(), "data.json")
+    if not os.path.exists(people_file_path):
+        return jsonify({"error":"data.json not found"}),404
 
-        if not rfid_code:
-            return jsonify({"error": "RFID is required"}), 400
+    with open(people_file_path,'r') as sf:
+        content = sf.read().strip()
+        people = json.loads(content) if content else []
 
-        # Load student list
-        if not os.path.exists(student_file_path):
-            return jsonify({"error": "data.json not found"}), 404
+    matched_student = next((s for s in people
+        if s.get("rfid")==rfid_code or s.get("rfid_code")==rfid_code), None)
 
-        with open(student_file_path, "r") as sf:
-            students = json.load(sf)
+    if not matched_student:
+        return jsonify({"error":"Student not found"}),404
 
-        # Match student
-        matched_student = next((
-            s for s in students
-            if s.get("rfid") == rfid_code or s.get("rfid_code") == rfid_code
-        ), None)
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-        if not matched_student:
-            return jsonify({"error": "Student not found"}), 404
+    today = datetime.now().date().isoformat()
+    cur.execute("SELECT * FROM attendance WHERE rfid=? AND timestamp LIKE ?", (rfid_code, today+"%"))
+    today_logs = cur.fetchall()
 
-        # Load logs
-        logs = []
-        if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
-            with open(log_file_path, 'r') as lf:
-                logs = json.load(lf)
+    has_in = any(l["status"]=="IN" for l in today_logs)
+    has_out= any(l["status"]=="OUT" for l in today_logs)
 
-        # Determine today's date string
-        today = datetime.now().date().isoformat()
+    if has_in and has_out:
+        return jsonify({"error":"Already timed in/out today"}),403
 
-        # Check today's logs for this student
-        todays_logs = [
-            log for log in logs
-            if log.get("rfid") == rfid_code and log.get("timestamp", "").startswith(today)
-        ]
+    status = "IN" if not has_in else "OUT"
+    now = datetime.now().isoformat()
 
-        # Group today's logs by status
-        today_in = any(log.get("status") == "IN" for log in todays_logs)
-        today_out = any(log.get("status") == "OUT" for log in todays_logs)
+    cur.execute("""
+        INSERT INTO attendance (rfid, status, timestamp, first_name, middle_name, last_name, age, grade,
+                                strandOrSec, gender, guardian, occupation, id_number, contact, address, photo)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (
+        rfid_code, status, now,
+        matched_student.get("first_name",""),
+        matched_student.get("middle_name",""),
+        matched_student.get("last_name",""),
+        matched_student.get("age",""),
+        matched_student.get("grade",""),
+        matched_student.get("section",""),
+        matched_student.get("gender",""),
+        matched_student.get("guardian",""),
+        matched_student.get("occupation",""),
+        matched_student.get("id_number",""),
+        matched_student.get("contact",""),
+        matched_student.get("address",""),
+        matched_student.get("photo","")
+    ))
+    conn.commit()
+    conn.close()
 
-        # Prevent more than one IN and OUT per day
-        if today_in and today_out:
-            return jsonify({"error": "Already timed in and out for today."}), 403
-
-        # Assign status based on today's logs
-        if not today_in:
-            status = "IN"
-        elif not today_out:
-            status = "OUT"
-        else:
-            return jsonify({"error": "Unable to determine status."}), 500
-
-        # Handle photo and avatar
-        photo_filename = matched_student.get("photo")
-        avatar_url = url_for('api.get_student_photo', filename=photo_filename, _external=True) if photo_filename else None
-
-        # Build new log entry
-        log_entry = {
-        "student_id": rfid_code,
-        "rfid": rfid_code,
-        "timestamp": datetime.now().isoformat(),
-        "status": status,
-        "first_name": matched_student.get("first_name", ""),
-        "middle_name": matched_student.get("middle_name", ""),
-        "last_name": matched_student.get("last_name", ""),
-        "age": matched_student.get("age", ""),  # ✅ ADD THIS LINE
-        "grade": matched_student.get("grade", ""),
-        "strandOrSec": matched_student.get("section", ""),
-        "gender": matched_student.get("gender", ""),
-        "guardian": matched_student.get("guardian", ""),
-        "occupation": matched_student.get("occupation", ""),
-        "id_number": matched_student.get("id_number", ""),
-        "contact": matched_student.get("contact", ""),
-        "address": matched_student.get("address", ""),
-        "photo": photo_filename,
-        "avatar": avatar_url
-        }
-
-        # Append log and save
-        logs.append(log_entry)
-
-        with open(log_file_path, 'w') as lf:
-            json.dump(logs, lf, indent=2)
-
-        return jsonify({
-            "message": f"Log entry saved successfully as {status}",
-            "status": status
-        }), 200
-        
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"message":f"Log entry saved successfully as {status}","status":status}),200
 
 @api_bp.route('/api/dashboard-stats', methods=['GET'])
 def get_dashboard_stats():
     try:
+        # Load master data.json
         student_file = os.path.join(get_app_data_dir(), "data.json")
-        log_file = get_student_file_path()
-
-        # Load all persons (students + employees)
         with open(student_file, 'r') as sf:
-            people = json.load(sf)
+            students = json.load(sf)
 
-        # Load attendance logs
-        logs = []
-        if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
-            with open(log_file, 'r') as lf:
-                logs = json.load(lf)
-
+        # Load TODAY's attendance logs from SQLite
         today_str = datetime.now().date().isoformat()
-        today_logs = [log for log in logs if log["timestamp"].startswith(today_str)]
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM attendance WHERE timestamp LIKE ? ORDER BY timestamp DESC", (today_str + "%",))
+        today_logs = [dict(r) for r in cur.fetchall()]
+        conn.close()
 
-        # Breakdown
-        total_students = len([p for p in people if p.get("occupation", "").lower() == "student"])
-        total_employees = len([p for p in people if p.get("occupation", "").lower() == "employee"])
+        # Totals
+        total_students  = len([s for s in students if s.get("occupation", "").lower() == "student"])
+        total_employees = len([s for s in students if s.get("occupation", "").lower() == "employee"])
 
-        time_in_today = len([log for log in today_logs if log["status"] == "IN"])
+        # Stats
+        time_in_today  = len([log for log in today_logs if log["status"] == "IN"])
         time_out_today = len([log for log in today_logs if log["status"] == "OUT"])
+        present_today  = len(set(log["rfid"] for log in today_logs if log["status"] == "IN"))
 
-        # Count unique present users today
-        present_rfids = set(log["rfid"] for log in today_logs if log["status"] == "IN")
-        present_today = len(present_rfids)
-
-        recent_logs = sorted(today_logs, key=lambda l: l["timestamp"], reverse=True)[:3]
+        # Most recent 3 logs for dashboard
+        recent_logs = today_logs[:3]
 
         return jsonify({
             "total_students": total_students,
+            "total_employees": total_employees,
             "present_today": present_today,
             "time_in_today": time_in_today,
             "time_out_today": time_out_today,
-            "total_employees": total_employees,
             "recent_logs": recent_logs
         })
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -396,46 +351,37 @@ def update_attendance():
         if not all([rfid, date, time_in]):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Load the logs file
-        log_file_path = get_student_file_path()
-        if not os.path.exists(log_file_path):
-            return jsonify({'error': 'Logs file not found'}), 404
-
-        with open(log_file_path, 'r') as f:
-            logs = json.load(f)
-
-        # Convert input date/time to datetime objects
-        new_time_in_dt = datetime.strptime(f"{date}T{time_in}", "%Y-%m-%dT%H:%M")
+        new_in_dt = datetime.strptime(f"{date}T{time_in}", "%Y-%m-%dT%H:%M")
         if time_out:
-            new_time_out_dt = datetime.strptime(f"{date}T{time_out}", "%Y-%m-%dT%H:%M")
-            if new_time_out_dt <= new_time_in_dt:
+            new_out_dt = datetime.strptime(f"{date}T{time_out}", "%Y-%m-%dT%H:%M")
+            if new_out_dt <= new_in_dt:
                 return jsonify({'error': 'Time out must be after time in'}), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor()
 
         updated = False
 
-        # Update the logs
-        for log in logs:
-            if log.get('rfid') == rfid:
-                log_dt = datetime.fromisoformat(log['timestamp'])
-                log_date = log_dt.date().isoformat()
-                
-                # Check if this log matches the original time in/out we're updating
-                if (original_time_in and log['timestamp'] == original_time_in) or \
-                   (original_time_out and log['timestamp'] == original_time_out):
-                    
-                    # Update the timestamp
-                    if log['status'] == 'IN':
-                        log['timestamp'] = new_time_in_dt.isoformat()
-                        updated = True
-                    elif log['status'] == 'OUT' and time_out:
-                        log['timestamp'] = new_time_out_dt.isoformat()
-                        updated = True
+        # update IN
+        if original_time_in:
+            cur.execute(
+                "UPDATE attendance SET timestamp=? WHERE rfid=? AND timestamp=? AND status='IN'",
+                (new_in_dt.isoformat(), rfid, original_time_in)
+            )
+            updated = updated or (cur.rowcount > 0)
+
+        # update OUT
+        if original_time_out and time_out:
+            cur.execute(
+                "UPDATE attendance SET timestamp=? WHERE rfid=? AND timestamp=? AND status='OUT'",
+                (new_out_dt.isoformat(), rfid, original_time_out)
+            )
+            updated = updated or (cur.rowcount > 0)
+
+        conn.commit()
+        conn.close()
 
         if updated:
-            # Save the updated logs
-            with open(log_file_path, 'w') as f:
-                json.dump(logs, f, indent=2)
-            
             return jsonify({'message': 'Attendance updated successfully'}), 200
         else:
             return jsonify({'error': 'No matching records found to update'}), 404

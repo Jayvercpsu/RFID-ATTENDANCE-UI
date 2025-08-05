@@ -1,7 +1,10 @@
 from flask import Flask
+from db import init_db
 from pages import pages_bp
 from api import api_bp
 from routes_api.settings import settings_bp
+
+init_db()
 
 app = Flask(__name__)
 

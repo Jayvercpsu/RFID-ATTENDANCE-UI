@@ -11,7 +11,7 @@ document
 
     // Validate passwords match if new password is provided
     if (newPassword && newPassword !== confirmPassword) {
-      showAlert("error", "New passwords do not match!");
+      showAlert("New passwords do not match!", "#f44336");
       return;
     }
 
@@ -37,47 +37,47 @@ document
         );
       }
 
-      showAlert("success", "Profile updated successfully!");
+      showAlert("Profile updated successfully!");
       // Clear password fields
       document.getElementById("currentPassword").value = "";
       document.getElementById("newPassword").value = "";
       document.getElementById("confirmPassword").value = "";
     } catch (error) {
       console.error("Profile update error:", error);
-      showAlert("error", error.message);
+      showAlert(error.message, "#f44336");
     }
   });
 
 // Helper function to show alerts
-function showAlert(type, message) {
-  const alertBox = document.createElement("div");
-  alertBox.className = `alert alert-${type}`;
-  alertBox.textContent = message;
-  alertBox.style.position = "fixed";
-  alertBox.style.top = "20px";
+function showAlert(message, color = "#4CAF50") {
+  const alertBox = document.getElementById("alertBox");
+  const alertMessage = document.getElementById("alertMessage");
+  const progressBar = document.getElementById("alertProgress");
+
+  alertMessage.textContent = message;
+  alertBox.style.backgroundColor = color;
   alertBox.style.right = "20px";
-  alertBox.style.padding = "10px 20px";
-  alertBox.style.borderRadius = "5px";
-  alertBox.style.color = "white";
-  alertBox.style.zIndex = "1000";
+  alertBox.style.opacity = "1";
 
-  if (type === "success") {
-    alertBox.style.backgroundColor = "#4CAF50";
-  } else if (type === "error") {
-    alertBox.style.backgroundColor = "#f44336";
-  } else {
-    alertBox.style.backgroundColor = "#2196F3";
-  }
+  progressBar.style.transition = "none";
+  progressBar.style.width = "0%";
 
-  document.body.appendChild(alertBox);
-  setTimeout(() => alertBox.remove(), 3000);
+  setTimeout(() => {
+    progressBar.style.transition = "width 4s linear";
+    progressBar.style.width = "100%";
+  }, 50);
+
+  setTimeout(() => {
+    alertBox.style.opacity = "0";
+    alertBox.style.right = "-400px";
+  }, 4000);
 }
 
 // Backup functions
 function createBackup() {
   const backupPath = document.getElementById("backupLocation").value.trim();
   if (!backupPath) {
-    showAlert("error", "Please enter a backup path (e.g. D:\\Projects)");
+    showAlert("Please enter a backup path (e.g. D:\\Projects)", "#f44336");
     return;
   }
 
@@ -89,10 +89,7 @@ function createBackup() {
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
-        showAlert(
-          "success",
-          "Backup successfully created at: " + data.backup_path
-        );
+        showAlert("Backup successfully created at: " + data.backup_path);
       } else {
         throw new Error(data.error || "Backup failed");
       }
@@ -100,9 +97,12 @@ function createBackup() {
     .catch((err) => {
       console.error(err);
       if (err.message.includes("denied")) {
-        showAlert("error", "Cannot backup using main directory. Try add sub folder.");
+        showAlert(
+          "Cannot backup using main directory. Try add sub folder.",
+          "#f44336"
+        );
       } else {
-        showAlert("error", err.message);
+        showAlert(err.message, "#f44336");
       }
     });
 }
@@ -126,7 +126,7 @@ function restoreBackup() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          showAlert("success", "Restore successful!");
+          showAlert("Restore successful!");
           setTimeout(() => location.reload(), 1000); // optional refresh
         } else {
           throw new Error(data.error || "Restore failed");
@@ -134,26 +134,9 @@ function restoreBackup() {
       })
       .catch((err) => {
         console.error(err);
-        showAlert("error", err.message);
+        showAlert(err.message, "#f44336");
       });
   };
-}
-
-async function saveBackupPath(path) {
-  try {
-    const response = await fetch("/api/set-backup-path", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ path }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.message);
-  } catch (error) {
-    console.error("Error saving backup path:", error);
-  }
 }
 
 // Initialize the page

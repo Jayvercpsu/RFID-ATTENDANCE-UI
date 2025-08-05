@@ -6,6 +6,7 @@ import os
 import json
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from db import get_db_path
 from utils.path_utils import get_app_data_dir, get_student_file_path, get_photo_folder_path, load_admin, save_admin
 
 settings_bp = Blueprint('settings', __name__)
@@ -15,8 +16,8 @@ def get_settings():
     admin_data = load_admin()
     # Return only non-sensitive settings
     return jsonify({
-        "username": admin_data.get("username"),
-        "backup_path": admin_data.get("backup_path")
+        "username": admin_data.get("username", "admin"),
+        "backup_path": admin_data.get("backup_path", "")
     })
 
 @settings_bp.route('/api/update-profile', methods=['POST'])
@@ -47,16 +48,18 @@ def create_backup():
     backup_path = data.get("backup_path")
 
     if not backup_path:
-        return jsonify({"error":"No backup path provided"}), 400
+        return jsonify({"error": "No backup path provided"}), 400
 
-    # Auto-create the destination folder if it does not exist
+    # Create destination folder if not exists
     try:
         os.makedirs(backup_path, exist_ok=True)
     except Exception as e:
         return jsonify({"error": f"Cannot create backup folder: {e}"}), 500
-    
+
     folders = ["CVE_ATTENDANCE", "CVE_PHOTO", "CVE_REGISTER"]
     appdata = os.getenv('APPDATA', os.path.expanduser("~"))
+
+    db_path = get_db_path()  # path to attendance.db
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_filename = f"rfid_backup_{timestamp}.zip"
@@ -64,19 +67,26 @@ def create_backup():
 
     try:
         with zipfile.ZipFile(backup_full, 'w', zipfile.ZIP_DEFLATED) as z:
+            # include folders
             for folder in folders:
                 folder_path = os.path.join(appdata, folder)
                 if os.path.exists(folder_path):
-                    for root,dirs,files in os.walk(folder_path):
+                    for root, dirs, files in os.walk(folder_path):
                         for f in files:
                             file_path = os.path.join(root, f)
-                            arcname = os.path.join(folder, os.path.relpath(file_path,folder_path))
+                            arcname = os.path.join(folder, os.path.relpath(file_path, folder_path))
                             z.write(file_path, arcname)
 
+            # include the sqlite db
+            if os.path.exists(db_path):
+                z.write(db_path, arcname="attendance.db")
+
+        # Save backup path in admin settings
         admin_data = load_admin()
         admin_data['backup_path'] = backup_path
         save_admin(admin_data)
-        return jsonify({"success": True,"backup_path":backup_full })
+
+        return jsonify({"success": True, "backup_path": backup_full})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -100,38 +110,32 @@ def restore_backup():
         with zipfile.ZipFile(temp_zip_path,'r') as z:
             z.extractall(extract_path)
 
+        # Restore folders + db
         appdata = os.getenv('APPDATA', os.path.expanduser('~'))
-        for folder in os.listdir(extract_path):
-            src = os.path.join(extract_path, folder)
-            dst = os.path.join(appdata, folder)
+        for item in os.listdir(extract_path):
+            src = os.path.join(extract_path, item)
+
+            if item == "attendance.db":
+                # sqlite db file → put into %APPDATA%/RFID_ATTENDANCE
+                dst_folder = os.path.join(appdata, "RFID_ATTENDANCE")
+                os.makedirs(dst_folder, exist_ok=True)
+                dst = os.path.join(dst_folder, "attendance.db")
+            else:
+                # normal folder → e.g. CVE_ATTENDANCE, CVE_PHOTO, CVE_REGISTER
+                dst = os.path.join(appdata, item)
+
+            # remove old
             if os.path.exists(dst):
-                shutil.rmtree(dst)
-            shutil.move(src,dst)
+                if os.path.isfile(dst):
+                    os.remove(dst)
+                else:
+                    shutil.rmtree(dst)
+
+            # move from temp extract to target
+            shutil.move(src, dst)
 
         shutil.rmtree(temp_dir, ignore_errors=True)
         return jsonify({"success":True})
     except Exception as e:
         shutil.rmtree(temp_dir, ignore_errors=True)
         return jsonify({"error":str(e)}),500
-
-@settings_bp.route('/api/set-backup-path', methods=['POST'])
-def set_backup_path():
-    data = request.json
-    path = data.get('path')
-    
-    if not path:
-        return jsonify({"error": "No path provided"}), 400
-    
-    # In a real app, you would save this to your settings
-    return jsonify({
-        "message": "Backup path updated",
-        "path": path
-    })
-
-@settings_bp.route('/api/get-backup-path', methods=['GET'])
-def get_backup_path():
-    # In a real app, you would get this from your settings
-    return jsonify({
-        "backup_path": os.path.join(os.getenv('APPDATA', os.path.expanduser('~')), 'backups')
-    })
-

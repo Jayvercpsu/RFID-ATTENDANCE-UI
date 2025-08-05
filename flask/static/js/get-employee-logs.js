@@ -40,6 +40,7 @@ $(document).ready(function () {
       );
     } else {
       $("#edit_time_out").val("");
+      $("#edit_time_out").prop("disabled", true);
     }
 
     // Show popup using jQuery
@@ -62,7 +63,7 @@ $(document).ready(function () {
     const rfid = $("#edit_rfid").val();
 
     if (!currentEditData) {
-      toastr.error("No record selected for editing");
+      showAlert("No record selected for editing", "#f44336");
       return;
     }
 
@@ -93,7 +94,7 @@ $(document).ready(function () {
       const result = await response.json();
 
       if (response.ok) {
-         toastr.success("Attendance record updated successfully");
+        showAlert("Attendance record updated successfully");
         closeEditPopup();
         // Refresh the table
         loadAttendanceData();
@@ -102,7 +103,7 @@ $(document).ready(function () {
       }
     } catch (error) {
       console.error("Error updating record:", error);
-       toastr.error("Error updating record: " + error.message);
+      showAlert("Error updating record: " + error.message, "#f44336");
     }
   });
 
@@ -254,14 +255,7 @@ $(document).ready(function () {
 
     // Prepare Excel data
     const excelData = [
-      [
-        "Employee Name",
-        "Date",
-        "Time In",
-        "Time Out",
-        "Total Hours",
-        "Status",
-      ], // Headers
+      ["Employee Name", "Date", "Time In", "Time Out", "Total Hours", "Status"], // Headers
     ];
 
     data.forEach((row) => {
@@ -272,14 +266,7 @@ $(document).ready(function () {
       const totalHours = row[5];
       const status = row[6];
 
-      excelData.push([
-        fullName,
-        date,
-        timeIn,
-        timeOut,
-        totalHours,
-        status,
-      ]);
+      excelData.push([fullName, date, timeIn, timeOut, totalHours, status]);
     });
 
     // Create workbook
@@ -292,6 +279,25 @@ $(document).ready(function () {
     // Generate Excel file and trigger download
     const currentDate = new Date().toISOString().split("T")[0];
     XLSX.writeFile(wb, `Employee_Attendance_${currentDate}.xlsx`);
+  }
+
+  function showAlert(message, color = "#4CAF50") {
+    const $alertBox = $("#alertBox");
+    const $alertMessage = $("#alertMessage");
+    const $progressBar = $("#alertProgress");
+
+    $alertMessage.text(message);
+    $alertBox.css({ backgroundColor: color, right: "20px", opacity: 1 });
+
+    $progressBar.css({ transition: "none", width: "0%" });
+
+    setTimeout(() => {
+      $progressBar.css({ transition: "width 4s linear", width: "100%" });
+    }, 50);
+
+    setTimeout(() => {
+      $alertBox.css({ opacity: 0, right: "-400px" });
+    }, 4000);
   }
 
   loadAttendanceData();

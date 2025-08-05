@@ -21,6 +21,11 @@
   <!-- sidebar -->
   {% include('pages/admin/header-sections/sidebar.html') %}
 
+  <div id="alertBox">
+    <span id="alertMessage">Message</span>
+    <div id="alertProgress"></div>
+  </div>
+
   <section class="dashboard">
     <div class="top">
       <i class="uil uil-bars sidebar-toggle"></i>
@@ -67,7 +72,7 @@
     </div>
   </section>
   <!-- Edit Popup -->
-   <!-- Edit Popup -->
+  <!-- Edit Popup -->
   <div id="editPopup" class="popup hidden">
     <div class="popup-backdrop" onclick="closeEditPopup()"></div>
     <div class="popup-box">
@@ -76,11 +81,11 @@
       <form id="editForm" class="popup-form">
         <input type="hidden" id="edit_log_id" />
         <input type="hidden" id="edit_rfid" />
-        
+
         <label>Date:
           <input type="date" id="edit_date" required />
         </label>
-        
+
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
             <label>Time In:
@@ -93,7 +98,7 @@
             </label>
           </div>
         </div>
-        
+
         <button type="submit" class="btn-submit">Update Record</button>
       </form>
     </div>

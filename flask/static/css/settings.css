@@ -58,6 +58,16 @@
   background: #45a049;
 }
 
+.dash-content input {
+    width: 40% !important;
+}
+
+@media (max-width: 768px) {
+  .dash-content input {
+    width: 100% !important;
+  }
+}
+
 .form-actions {
   display: flex;
   gap: 10px;
