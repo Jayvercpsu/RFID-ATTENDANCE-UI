@@ -187,7 +187,7 @@ def log_attendance():
     if not rfid_code:
         return jsonify({"error":"RFID is required"}),400
 
-    # find matched student in data.json
+    # load student/person
     people_file_path = os.path.join(get_app_data_dir(), "data.json")
     if not os.path.exists(people_file_path):
         return jsonify({"error":"data.json not found"}),404
@@ -196,52 +196,68 @@ def log_attendance():
         content = sf.read().strip()
         people = json.loads(content) if content else []
 
-    matched_student = next((s for s in people
-        if s.get("rfid")==rfid_code or s.get("rfid_code")==rfid_code), None)
-
-    if not matched_student:
+    matched = next((s for s in people if s.get("rfid")==rfid_code or s.get("rfid_code")==rfid_code), None)
+    if not matched:
         return jsonify({"error":"Student not found"}),404
 
     conn = get_db_connection()
     cur = conn.cursor()
 
-    today = datetime.now().date().isoformat()
-    cur.execute("SELECT * FROM attendance WHERE rfid=? AND timestamp LIKE ?", (rfid_code, today+"%"))
-    today_logs = cur.fetchall()
+    # get last log for this rfid
+    cur.execute("SELECT * FROM attendance WHERE rfid=? ORDER BY timestamp DESC LIMIT 1", (rfid_code,))
+    last = cur.fetchone()
 
-    has_in = any(l["status"]=="IN" for l in today_logs)
-    has_out= any(l["status"]=="OUT" for l in today_logs)
+    now = datetime.now()
+    today = now.date().isoformat()
 
-    if has_in and has_out:
-        return jsonify({"error":"Already timed in/out today"}),403
+    if last:
+        last_dt = datetime.fromisoformat(last['timestamp'])
+        last_date = last_dt.date().isoformat()
 
-    status = "IN" if not has_in else "OUT"
-    now = datetime.now().isoformat()
+        if last_date == today:
+            # SAME DAY
+            if last['status'] == 'IN':
+                status = 'OUT'
+            else:
+                # last was OUT, so already timed in & out today
+                return jsonify({"error":"Already timed in/out today"}),403
+        else:
+            # DIFFERENT DAY
+            if last['status'] == 'IN':
+                # forgot to OUT yesterday → treat now as OUT
+                status = 'OUT'
+            else:
+                # last was OUT on previous day → new IN
+                status = 'IN'
+    else:
+        # no history at all
+        status = 'IN'
 
     cur.execute("""
-        INSERT INTO attendance (rfid, status, timestamp, first_name, middle_name, last_name, age, grade,
-                                strandOrSec, gender, guardian, occupation, id_number, contact, address, photo)
+        INSERT INTO attendance
+        (rfid,status,timestamp,first_name,middle_name,last_name,age,grade,strandOrSec,gender,
+         guardian,occupation,id_number,contact,address,photo)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
-        rfid_code, status, now,
-        matched_student.get("first_name",""),
-        matched_student.get("middle_name",""),
-        matched_student.get("last_name",""),
-        matched_student.get("age",""),
-        matched_student.get("grade",""),
-        matched_student.get("section",""),
-        matched_student.get("gender",""),
-        matched_student.get("guardian",""),
-        matched_student.get("occupation",""),
-        matched_student.get("id_number",""),
-        matched_student.get("contact",""),
-        matched_student.get("address",""),
-        matched_student.get("photo","")
+        rfid_code, status, now.isoformat(),
+        matched.get("first_name",""),
+        matched.get("middle_name",""),
+        matched.get("last_name",""),
+        matched.get("age",""),
+        matched.get("grade",""),
+        matched.get("section",""),
+        matched.get("gender",""),
+        matched.get("guardian",""),
+        matched.get("occupation",""),
+        matched.get("id_number",""),
+        matched.get("contact",""),
+        matched.get("address",""),
+        matched.get("photo","")
     ))
     conn.commit()
     conn.close()
 
-    return jsonify({"message":f"Log entry saved successfully as {status}","status":status}),200
+    return jsonify({"message": f"Log entry saved successfully as {status}","status":status}),200
 
 @api_bp.route('/api/dashboard-stats', methods=['GET'])
 def get_dashboard_stats():

@@ -4,7 +4,8 @@ async function loadLogs() {
   const res = await fetch("/api/logs");
   console.log(res);
   if (!res.ok) {
-    logsContainer.innerHTML = "<p style='text-align:center;'>Empty logs for today</p>";
+    logsContainer.innerHTML =
+      "<p style='text-align:center;'>Empty logs for today</p>";
     return;
   }
 
@@ -92,6 +93,30 @@ document.addEventListener("DOMContentLoaded", () => {
   let capturedPhotoBlob = null;
   let inlineScannerRunning = false;
 
+  function showAlert(message, color = "#4CAF50") {
+    const alertBox = document.getElementById("alertBox");
+    const alertMessage = document.getElementById("alertMessage");
+    const progressBar = document.getElementById("alertProgress");
+
+    alertMessage.textContent = message;
+    alertBox.style.backgroundColor = color;
+    alertBox.style.right = "20px";
+    alertBox.style.opacity = "1";
+
+    progressBar.style.transition = "none";
+    progressBar.style.width = "0%";
+
+    setTimeout(() => {
+      progressBar.style.transition = "width 4s linear";
+      progressBar.style.width = "100%";
+    }, 50);
+
+    setTimeout(() => {
+      alertBox.style.opacity = "0";
+      alertBox.style.right = "-400px";
+    }, 4000);
+  }
+
   function updateUI() {
     const selectedCodeType = document.querySelector(
       'input[name="codeType"]:checked'
@@ -127,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ).value;
 
     if (selectedScannerType === "rfid") {
-      toastr.info("RFID scanning is not implemented yet.");
+      showAlert("RFID scanning is not implemented yet.", "#f44336");
       return;
     }
 
@@ -173,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : document.getElementById("qrCodeValue").value;
 
     if (!rfidCode) {
-      toastr.error("Please enter or scan a code.");
+      showAlert("Please enter or scan a code.", "#f44336");
       return;
     }
 
@@ -181,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       'input[name="scannerType"]:checked'
     ).value;
     if (codeType != "input" && selectedScannerType === "rfid") {
-      toastr.info("RFID scanning is not implemented yet.");
+      showAlert("RFID scanning is not implemented yet.", "#f44336");
       return;
     }
 
@@ -220,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
 
       if (res.ok) {
-        toastr.success(result.message);
+        showAlert("Registration successful!");
         setTimeout(() => {
           registerForm.reset();
           qrModal.classList.remove("show");
@@ -229,10 +254,14 @@ document.addEventListener("DOMContentLoaded", () => {
           startInlineScanner();
         }, 2000);
       } else {
-        toastr.error(result.error || "Registration failed.");
+        console.error("Registration error:", result.error);
+        showAlert(result.error || "Registration failed.", "#f44336");
       }
     } catch (err) {
-      toastr.error("Something went wrong.");
+      showAlert(
+        err.message || "Failed to register. Please try again.",
+        "#f44336"
+      );
       console.error(err);
     }
   });
@@ -262,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Convert to blob for upload
       canvas.toBlob((blob) => {
         capturedPhotoBlob = blob;
-        toastr.success("Photo captured!");
+        showAlert("Photo captured successfully!");
       }, "image/jpeg");
 
       // Hide video, show canvas
@@ -301,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("qrCodeValue").value = decodedText;
         scanner.stop().then(() => {
           qrModal.classList.remove("show");
-          toastr.success("Successfully scanned code.");
+          showAlert("Successfully scanned code.");
           document.getElementById("scanSound").play();
           console.log("Scanned QR Code:", decodedText);
           readerElement.innerHTML = "";
@@ -351,22 +380,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("API Error:", result.error);
 
                 if (result.error && result.error.includes("Already")) {
-                  toastr.info(result.error);
+                  showAlert(result.error, "#f44336");
                 } else {
-                  toastr.error("Unidentified code or not registered.");
+                  showAlert("Unidentified code or not registered.", "#f44336");
                 }
 
                 document.getElementById("scanSoundError").play();
               } else {
-                toastr.success(
-                  `Successfully logged ${result.status.toLowerCase()}`
-                );
+                showAlert(`Successfully logged ${result.status.toLowerCase()}`);
                 document.getElementById("scanSound").play();
                 await loadLogs();
               }
             } catch (error) {
               console.error("Fetch error:", error);
-              toastr.error("API request failed.");
+              showAlert("Failed to log attendance. Please try again.");
             }
 
             // Allow rescanning of same code after 5 seconds
@@ -374,12 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
               scanningLocked = false;
             }, 1000);
           }
-
-          //   else if (now - lastScannedTime >= 2000) {
-          //     toastr.info("Already scanned.");
-          //     document.getElementById("scanSoundError").play();
-          //     lastScannedTime = now; // update timestamp to avoid flooding
-          //   }
         },
         (err) => {
           // error callback (optional)

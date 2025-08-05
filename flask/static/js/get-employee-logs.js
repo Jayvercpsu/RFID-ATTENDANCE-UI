@@ -145,7 +145,7 @@ $(document).ready(function () {
           <td>
               <button class="btn-save" onclick="openEditPopup(${JSON.stringify({
                 logId:
-                  firstLog.student_id + "_" + formattedDate.replace(/ /g, "_"),
+                  firstLog.id_number + "_" + formattedDate.replace(/ /g, "_"),
                 rfid: firstLog.rfid,
                 timeIn: timeIn,
                 timeOut: timeOut,
@@ -173,9 +173,9 @@ $(document).ready(function () {
     logs.forEach((log) => {
       const date = new Date(log.timestamp);
       const dateKey = date.toISOString().split("T")[0]; // YYYY-MM-DD
-      const key = `${log.student_id}_${dateKey}`;
+      const key = `${log.id_number}_${dateKey}`;
 
-      if (!grouped[key]) {
+      if (!grouped[key]) {9
         grouped[key] = {
           logs: [],
           timeIn: null,
