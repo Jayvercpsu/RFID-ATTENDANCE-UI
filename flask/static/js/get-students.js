@@ -1,5 +1,5 @@
 let deleteRFID = null;
-let studentsTable = null; // Store the DataTable instance
+let studentsTable = null;
 
 $(document).ready(function () {
   fetch('/api/students')
@@ -103,13 +103,12 @@ $(document).ready(function () {
 
 
       if (studentsTable) {
-        studentsTable.clear().destroy(); // Reset if already initialized
+        studentsTable.clear().destroy();
       }
       studentsTable = $('#studentsTable').DataTable();
 
     });
 
-  // Submit edited data
   $('#editForm').submit(function (e) {
     e.preventDefault();
 
@@ -167,7 +166,6 @@ function toggleMenu(button) {
   const menu = button.nextElementSibling;
   const isVisible = menu.style.display === 'block';
 
-  // Close all other dropdowns
   document.querySelectorAll('.dropdown-menu').forEach(el => {
     el.style.display = 'none';
     el.style.opacity = 0;
@@ -175,13 +173,12 @@ function toggleMenu(button) {
   });
 
   if (!isVisible) {
-    // Get button position
     const rect = button.getBoundingClientRect();
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
     menu.style.top = `${rect.bottom + scrollTop}px`;
-    menu.style.left = `${rect.right + scrollLeft - 150}px`; // Adjust left offset
+    menu.style.left = `${rect.right + scrollLeft - 150}px`;
     menu.style.display = 'block';
 
     requestAnimationFrame(() => {
@@ -235,10 +232,8 @@ document.getElementById('editForm').addEventListener('submit', async function (e
       showAlert('Student updated successfully.');
       closeEditPopup();
 
-      // Find the updated row
       const row = document.querySelector(`tr[data-rfid="${rfid}"]`);
       if (row) {
-        // Update each cell (make sure your HTML <td>s have matching classes)
         row.querySelector('.col-first_name').textContent = updatedStudent.first_name;
         row.querySelector('.col-middle_name').textContent = updatedStudent.middle_name;
         row.querySelector('.col-last_name').textContent = updatedStudent.last_name;
@@ -268,29 +263,26 @@ function showAlert(message, color = '#4CAF50') {
   alertBox.style.right = '20px';
   alertBox.style.opacity = '1';
 
-  // Reset progress
   progressBar.style.transition = 'none';
   progressBar.style.width = '0%';
 
-  // Trigger progress animation after short delay
   setTimeout(() => {
     progressBar.style.transition = 'width 4s linear';
     progressBar.style.width = '100%';
   }, 50);
 
-  // Hide after 4 seconds
   setTimeout(() => {
     alertBox.style.opacity = '0';
     alertBox.style.right = '-400px';
   }, 4000);
 }
 
+
+
 function openEditPopup(student) {
-  // Always fetch the latest data from the server
   fetch('/api/students')
     .then(res => res.json())
     .then(data => {
-      // Find the most up-to-date student by RFID or RFID code
       const freshStudent = data.find(s => s.rfid === student.rfid || s.rfid_code === student.rfid);
 
       if (!freshStudent) {
@@ -298,7 +290,6 @@ function openEditPopup(student) {
         return;
       }
 
-      // Populate modal form fields
       $('#edit_rfid').val(freshStudent.rfid);
       $('#edit_first_name').val(freshStudent.first_name);
       $('#edit_middle_name').val(freshStudent.middle_name || '');
@@ -311,7 +302,6 @@ function openEditPopup(student) {
       $('#edit_address').val(freshStudent.address);
       $('#edit_guardian').val(freshStudent.guardian);
 
-      // Show modal
       $('#editPopup').removeClass('hidden');
     })
     .catch(err => {
@@ -337,10 +327,19 @@ function closeDeletePopup() {
 function confirmDelete() {
   if (!deleteRFID) return;
 
-  fetch(`/api/student/${deleteRFID}`, { method: 'DELETE' })
+  fetch(`/api/students/${deleteRFID}`, { method: 'DELETE' })
     .then(res => res.json())
-    .then(() => {
-      $(`tr[data-rfid="${deleteRFID}"]`).remove(); // Remove from table
+    .then(data => {
+      if (data.message) {
+        $(`tr[data-rfid="${deleteRFID}"]`).remove();
+        showAlert('Student deleted successfully.', '#f44336');
+        closeDeletePopup();
+      } else {
+        showAlert(data.error || 'Delete failed.', '#f44336');
+      }
+    })
+    .catch(err => {
+      showAlert('Error deleting student: ' + err.message, '#f44336');
       closeDeletePopup();
     });
 }
