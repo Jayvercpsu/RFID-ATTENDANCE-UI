@@ -24,7 +24,7 @@ $(document).ready(function () {
   <td class="col-address">${student.address || ''}</td>
   <td class="col-guardian">${student.guardian || ''}</td>
   <td class="col-rfid">${student.rfid || student.rfid_code || ''}</td>
-  <td class="col-avatar">
+  <td class="col-avatar"> 
     ${student.avatar
             ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
             : 'N/A'}

@@ -9,7 +9,7 @@ from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_studen
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
-STUDENT_FILE = os.path.join(get_app_data_dir(), 'data.json')
+STUDENT_FILE = os.path.join(get_app_data_dir("CVE_REGISTER"), 'students.json')
 
 @api_bp.route('/api/photo/<filename>')
 def get_student_photo(filename):
@@ -164,7 +164,6 @@ def update_student_by_rfid(rfid):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     log_file_path = get_student_file_path()
@@ -263,6 +262,9 @@ def log_attendance():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 @api_bp.route('/api/admin-login', methods=['POST'])
 def admin_login():
