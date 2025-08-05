@@ -182,7 +182,6 @@ def update_student_by_rfid(rfid):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     log_file_path = get_student_file_path()
@@ -283,8 +282,56 @@ def log_attendance():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@api_bp.route('/api/dashboard-stats', methods=['GET'])
+def get_dashboard_stats():
+    try:
+        student_file = os.path.join(get_app_data_dir(), "data.json")
+        employee_file = os.path.join(get_app_data_dir(), "employees.json")
+        log_file = get_student_file_path()
 
+        # Load student records
+        with open(student_file, 'r') as sf:
+            students = json.load(sf)
 
+        # Load employees
+        employees = []
+        if os.path.exists(employee_file):
+            with open(employee_file, 'r') as ef:
+                employees = json.load(ef)
+
+        # Load attendance logs
+        logs = []
+        if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
+            with open(log_file, 'r') as lf:
+                logs = json.load(lf)
+
+        today_str = datetime.now().date().isoformat()
+        today_logs = [log for log in logs if log["timestamp"].startswith(today_str)]
+
+        # Breakdown
+        total_students = len([s for s in students if s.get("occupation", "").lower() == "student"])
+        total_employees = len([e for e in students if e.get("occupation", "").lower() == "employee"]) + len(employees)
+
+        time_in_today = len([log for log in today_logs if log["status"] == "IN"])
+        time_out_today = len([log for log in today_logs if log["status"] == "OUT"])
+
+        # Count unique students present today
+        present_rfids = set(log["rfid"] for log in today_logs if log["status"] == "IN")
+        present_today = len(present_rfids)
+
+        recent_logs = sorted(today_logs, key=lambda l: l["timestamp"], reverse=True)[:3]
+
+        return jsonify({
+            "total_students": total_students,
+            "present_today": present_today,
+            "time_in_today": time_in_today,
+            "time_out_today": time_out_today,
+            "total_employees": total_employees,
+            "recent_logs": recent_logs
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/admin-login', methods=['POST'])
 def admin_login():
