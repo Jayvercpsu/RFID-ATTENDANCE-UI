@@ -1,0 +1,53 @@
+.boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.box {
+  position: relative;
+  padding: 16px 18px;
+  flex: 1 1 220px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  opacity: 0.1;
+  z-index: 0;
+  transition: width 0.4s ease;
+}
+
+.box * {
+  position: relative;
+  z-index: 1;
+}
+
+.box:hover::before {
+  width: 100%;
+}
+
+.box1:hover::before {
+  background-color: #3b82f6;
+}
+.box4:hover::before {
+  background-color: #10b981;
+}
+.box5:hover::before {
+  background-color: #ef4444;
+}
+.box6:hover::before {
+  background-color: #f59e0b;
+}
+
+.box1:nth-of-type(2):hover::before {
+  background-color: #8b5cf6;
+}

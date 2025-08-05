@@ -17,6 +17,10 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/dashboard-stats.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard-cards.css') }}"
+    />
     <title>RFID Attendance Admin Panel</title>
   </head>
 
@@ -36,27 +40,46 @@
             <span class="text">Admin Dashboard</span>
           </div>
           <div class="boxes">
-            <div class="box box1">
+            <div
+              class="box box1"
+              style="background-color: #dbeafe; border-left: 5px solid #3b82f6"
+            >
               <i class="uil uil-user-check"></i>
               <span class="text">Total Present Today (IN)</span>
               <span class="number" id="presentToday">0</span>
             </div>
-            <div class="box box3">
+
+            <div
+              class="box box1"
+              style="background-color: #ede9fe; border-left: 5px solid #8b5cf6"
+            >
               <i class="uil uil-users-alt"></i>
               <span class="text">Total Students</span>
               <span class="number" id="totalStudents">0</span>
             </div>
-            <div class="box box4">
+
+            <div
+              class="box box4 time-in"
+              style="background-color: #d1fae5; border-left: 5px solid #10b981"
+            >
               <i class="uil uil-sign-in-alt"></i>
               <span class="text">Total Time-IN</span>
               <span class="number" id="timeInToday">0</span>
             </div>
-            <div class="box box5">
+
+            <div
+              class="box box5 time-out"
+              style="background-color: #fee2e2; border-left: 5px solid #ef4444"
+            >
               <i class="uil uil-sign-out-alt"></i>
               <span class="text">Total Time-OUT</span>
               <span class="number" id="timeOutToday">0</span>
             </div>
-            <div class="box box6">
+
+            <div
+              class="box box6"
+              style="background-color: #fef3c7; border-left: 5px solid #f59e0b"
+            >
               <i class="uil uil-user"></i>
               <span class="text">Total Employees</span>
               <span class="number" id="totalEmployees">0</span>

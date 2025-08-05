@@ -287,18 +287,11 @@ def log_attendance():
 def get_dashboard_stats():
     try:
         student_file = os.path.join(get_app_data_dir(), "data.json")
-        employee_file = os.path.join(get_app_data_dir(), "employees.json")
         log_file = get_student_file_path()
 
-        # Load student records
+        # Load all persons (students + employees)
         with open(student_file, 'r') as sf:
-            students = json.load(sf)
-
-        # Load employees
-        employees = []
-        if os.path.exists(employee_file):
-            with open(employee_file, 'r') as ef:
-                employees = json.load(ef)
+            people = json.load(sf)
 
         # Load attendance logs
         logs = []
@@ -310,13 +303,13 @@ def get_dashboard_stats():
         today_logs = [log for log in logs if log["timestamp"].startswith(today_str)]
 
         # Breakdown
-        total_students = len([s for s in students if s.get("occupation", "").lower() == "student"])
-        total_employees = len([e for e in students if e.get("occupation", "").lower() == "employee"]) + len(employees)
+        total_students = len([p for p in people if p.get("occupation", "").lower() == "student"])
+        total_employees = len([p for p in people if p.get("occupation", "").lower() == "employee"])
 
         time_in_today = len([log for log in today_logs if log["status"] == "IN"])
         time_out_today = len([log for log in today_logs if log["status"] == "OUT"])
 
-        # Count unique students present today
+        # Count unique present users today
         present_rfids = set(log["rfid"] for log in today_logs if log["status"] == "IN")
         present_today = len(present_rfids)
 
