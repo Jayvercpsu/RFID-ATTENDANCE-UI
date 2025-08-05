@@ -1,76 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/line.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard-stats.css') }}"
+    />
+    <title>RFID Attendance Admin Panel</title>
+  </head>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-stats.css') }}" />
-  <title>RFID Attendance Admin Panel</title>
-</head>
+  <body>
+    <!-- sidebar -->
+    {% include('pages/admin/header-sections/sidebar.html') %}
 
-<body>
-  
-   <!-- sidebar -->
-  {% include('pages/admin/header-sections/sidebar.html') %}
+    <section class="dashboard">
+      <div class="top">
+        <i class="uil uil-bars sidebar-toggle"></i>
+      </div>
 
-  <section class="dashboard">
-    <div class="top">
-      <i class="uil uil-bars sidebar-toggle"></i>
-    </div>
-
-    <div class="dash-content">
-      <div class="overview">
-        <div class="title">
-          <i class="uil uil-tachometer-fast-alt"></i>
-          <span class="text">Admin Dashboard</span>
+      <div class="dash-content">
+        <div class="overview">
+          <div class="title">
+            <i class="uil uil-tachometer-fast-alt"></i>
+            <span class="text">Admin Dashboard</span>
+          </div>
+          <div class="boxes">
+            <div class="box box1">
+              <i class="uil uil-user-check"></i>
+              <span class="text">Total Present Today (IN)</span>
+              <span class="number" id="presentToday">0</span>
+            </div>
+            <div class="box box3">
+              <i class="uil uil-users-alt"></i>
+              <span class="text">Total Students</span>
+              <span class="number" id="totalStudents">0</span>
+            </div>
+            <div class="box box4">
+              <i class="uil uil-sign-in-alt"></i>
+              <span class="text">Total Time-IN</span>
+              <span class="number" id="timeInToday">0</span>
+            </div>
+            <div class="box box5">
+              <i class="uil uil-sign-out-alt"></i>
+              <span class="text">Total Time-OUT</span>
+              <span class="number" id="timeOutToday">0</span>
+            </div>
+            <div class="box box6">
+              <i class="uil uil-user"></i>
+              <span class="text">Total Employees</span>
+              <span class="number" id="totalEmployees">0</span>
+            </div>
+          </div>
         </div>
-      <div class="boxes">
-  <div class="box box1">
-    <i class="uil uil-user-check"></i>
-    <span class="text">Total Present Today (IN)</span>
-    <span class="number" id="presentToday">0</span>
-  </div>
-  <div class="box box3">
-    <i class="uil uil-users-alt"></i>
-    <span class="text">Total Students</span>
-    <span class="number" id="totalStudents">0</span>
-  </div>
-  <div class="box box4">
-    <i class="uil uil-sign-in-alt"></i>
-    <span class="text">Total Time-IN</span>
-    <span class="number" id="timeInToday">0</span>
-  </div>
-  <div class="box box5">
-    <i class="uil uil-sign-out-alt"></i>
-    <span class="text">Total Time-OUT</span>
-    <span class="number" id="timeOutToday">0</span>
-  </div>
-  <div class="box box6">
-    <i class="uil uil-user"></i>
-    <span class="text">Total Employees</span>
-    <span class="number" id="totalEmployees">0</span>
-  </div>
-    </div>
-      </div>
 
-      <div class="activity">
-        <div class="title">
-          <i class="uil uil-clock-three"></i>
-          <span class="text">Recent RFID Activity</span>
+        <div class="activity">
+          <div class="title">
+            <i class="uil uil-clock-three"></i>
+            <span class="text">Recent RFID Activity</span>
+          </div>
+          <div class="activity-data" id="recentActivityContainer">
+            <!-- Dynamically inserted content -->
+          </div>
         </div>
-        <div class="activity-data" id="recentActivityContainer">
-        <!-- Dynamically inserted content -->
       </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/dashboard-stats.js') }}"></script>
-</body>
-
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-stats.js') }}"></script>
+  </body>
 </html>
