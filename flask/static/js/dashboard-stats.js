@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ${data.recent_logs.map(log => `<span class="data-list">${log.first_name} ${log.last_name}</span>`).join('')}
           </div>
           <div class="data email">
-            <span class="data-title">Student ID</span>
-            ${data.recent_logs.map(log => `<span class="data-list">${log.rfid}</span>`).join('')}
+            <span class="data-title">ID Number</span>
+            ${data.recent_logs.map(log => `<span class="data-list">${log.id_number}</span>`).join('')}
           </div>
           <div class="data joined">
             <span class="data-title">Time In</span>
