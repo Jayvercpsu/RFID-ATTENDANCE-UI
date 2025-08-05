@@ -40,18 +40,18 @@ $(document).ready(function () {
     <div class="dropdown-menu" style="
       display: none;
       opacity: 0;
-      transform: translateY(-5px);
+      transform: translateX(5px);
       transition: opacity 0.2s ease, transform 0.2s ease;
       position: absolute;
       z-index: 3;
-      min-width: 140px;
+      min-width: 50px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       padding: 4px 0;
-      right: 0;
-      top: 100%;
+      right: 100%;
+      top: 0;
     ">
       <button class="btn-edit" data-rfid="${student.rfid || student.rfid_code}" style="
         display: flex;
@@ -83,12 +83,11 @@ $(document).ready(function () {
         font-size: 14px;
       ">
         <span>Delete</span>
-        <i class="fas fa-trash"></i>
+        <i class="fas fa-trash" style="color: red;"></i>
       </button>
     </div>
   </div>
 </td>
-
         `;
         tbody.appendChild(row);
       });
