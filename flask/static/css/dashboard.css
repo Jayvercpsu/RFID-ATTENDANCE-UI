@@ -132,7 +132,7 @@ body.dark li a:hover:before {
   background-color: var(--text-color);
 }
 
-body.dark table, p {
+body.dark table, p, .edit-ellipsis {
   color: var(--text-color) !important;
 }
 
@@ -198,6 +198,19 @@ body.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current:hove
 body.dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
     background: #555 !important;
     color: white !important;
+}
+
+.btn-save {
+  background-color: #3c91e6;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  background-color: #1d4ed8;
 }
 
 .menu-items li a i {

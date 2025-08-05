@@ -28,15 +28,11 @@ $(document).ready(function () {
   <td class="col-section">${student.strandOrSec || student.section || ''}</td>
   <td class="col-contact">${student.contact || ''}</td>
   <td class="col-address">${student.address || ''}</td>
-  <td class="col-guardian">${student.guardian || ''}</td>
  
- <td style="position: relative; overflow: visible; z-index: 1;">
+ <td style="position: relative; overflow: visible;text-align: left;">
   <div style="position: relative; display: inline-block;">
     <!-- Three Dots Button -->
-    <button onclick="toggleMenu(this)" style="
-      background: none; 
-      border: none; 
-      font-size: 20px; 
+    <button class="btn-save" onclick="toggleMenu(this)" style="
       cursor: pointer;
       z-index: 2;
       position: relative;
@@ -53,7 +49,7 @@ $(document).ready(function () {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: 9999;
+      z-index: 3;
       min-width: 140px;
       background: #fff;
       border: 1px solid #ccc;
