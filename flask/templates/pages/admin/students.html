@@ -51,7 +51,7 @@
 
     <div class="dash-content">
       <div class="overview">
-        <div class="title">
+        <div class="title"> 
           <i class="uil uil-users-alt"></i>
           <span class="text">Student List</span>
         </div>
@@ -60,6 +60,7 @@
           <table id="studentsTable" class="display">
             <thead>
               <tr>
+                <th>Photo</th>
                 <th>First Name</th>
                 <th>Middle Name</th>
                 <th>Last Name</th>
@@ -70,8 +71,7 @@
                 <th>Contact</th>
                 <th>Address</th>
                 <th>Guardian</th>
-                <th>RFID Code</th>
-                <th>Photo</th>
+                <th>Student ID</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -150,14 +150,6 @@
 
   <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-  <script>
-    $(document).ready(function () {
-      $('#studentsTable').DataTable({
-        scrollX: true,
-        responsive: true
-      });
-    });
-  </script>
   <script src="{{ url_for('static', filename='js/get-students.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
