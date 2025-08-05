@@ -44,3 +44,4 @@ def admin_employee_logs():
 @login_required_page
 def admin_settings():
     return render_template(ADMIN_SETTINGS_PAGE)
+

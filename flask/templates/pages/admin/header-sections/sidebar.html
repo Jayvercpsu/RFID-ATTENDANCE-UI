@@ -1,5 +1,15 @@
-<link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
+<link
+  href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"
+  rel="stylesheet"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/students-modal.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/admin-profile.css') }}"
+/>
 
 <nav>
   <div class="logo-name">
@@ -16,7 +26,8 @@
       </li>
       <li>
         <a href="{{ url_for('pages.admin_students') }}">
-          <i class="uil uil-user"></i> <!-- Changed from uil-user -->
+          <i class="uil uil-user"></i>
+          <!-- Changed from uil-user -->
           <span class="link-name">Students</span>
         </a>
       </li>
@@ -28,7 +39,8 @@
       </li>
       <li>
         <a href="{{ url_for('pages.admin_employee_logs') }}">
-          <i class="uil uil-users-alt"></i> <!-- Changed from uil-user -->
+          <i class="uil uil-users-alt"></i>
+          <!-- Changed from uil-user -->
           <span class="link-name">Employee Logs</span>
         </a>
       </li>
@@ -42,7 +54,7 @@
 
     <ul class="logout-mode">
       <li>
-        <a onclick="openLogoutPopup()" style="cursor: pointer;">
+        <a onclick="openLogoutPopup()" style="cursor: pointer">
           <i class="uil uil-signout"></i>
           <span class="link-name">Logout</span>
         </a>
@@ -61,6 +73,11 @@
   </div>
 </nav>
 
+<a href="{{ url_for('pages.admin_settings') }}" class="profile-container">
+  <span class="profile-name">Admin</span>
+  <i class="uil uil-user-circle profile-icon" style="color: #0e4bf1"></i>
+</a>
+
 <div id="logoutPopup" class="popup hidden">
   <div class="popup-backdrop" onclick="closeLogoutPopup()"></div>
   <div class="popup-box">
@@ -68,7 +85,9 @@
     <div class="popup-title">Confirm Logout</div>
     <p class="popup-message">Are you sure you want to logout?</p>
     <div class="popup-actions">
-      <button class="btn-delete-confirm" onclick="confirmLogout()">Yes, Logout</button>
+      <button class="btn-delete-confirm" onclick="confirmLogout()">
+        Yes, Logout
+      </button>
       <button class="btn-cancel" onclick="closeLogoutPopup()">Cancel</button>
     </div>
   </div>
@@ -76,11 +95,11 @@
 
 <script>
   function openLogoutPopup() {
-    document.getElementById('logoutPopup').classList.remove('hidden');
+    document.getElementById("logoutPopup").classList.remove("hidden");
   }
 
   function closeLogoutPopup() {
-    document.getElementById('logoutPopup').classList.add('hidden');
+    document.getElementById("logoutPopup").classList.add("hidden");
   }
 
   function confirmLogout() {
