@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/line.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-stats.css') }}" />
   <title>RFID Attendance Admin Panel</title>
 </head>
 
@@ -27,23 +28,33 @@
           <i class="uil uil-tachometer-fast-alt"></i>
           <span class="text">Admin Dashboard</span>
         </div>
-        <div class="boxes">
-          <div class="box box1">
-            <i class="uil uil-user-check"></i>
-            <span class="text">Total Present Today</span>
-            <span class="number">312</span>
-          </div>
-          <div class="box box2">
-            <i class="uil uil-user-times"></i>
-            <span class="text">Total Absent</span>
-            <span class="number">24</span>
-          </div>
-          <div class="box box3">
-            <i class="uil uil-users-alt"></i>
-            <span class="text">Total Students</span>
-            <span class="number">350</span>
-          </div>
-        </div>
+      <div class="boxes">
+  <div class="box box1">
+    <i class="uil uil-user-check"></i>
+    <span class="text">Total Present Today (IN)</span>
+    <span class="number" id="presentToday">0</span>
+  </div>
+  <div class="box box3">
+    <i class="uil uil-users-alt"></i>
+    <span class="text">Total Students</span>
+    <span class="number" id="totalStudents">0</span>
+  </div>
+  <div class="box box4">
+    <i class="uil uil-sign-in-alt"></i>
+    <span class="text">Total Time-IN</span>
+    <span class="number" id="timeInToday">0</span>
+  </div>
+  <div class="box box5">
+    <i class="uil uil-sign-out-alt"></i>
+    <span class="text">Total Time-OUT</span>
+    <span class="number" id="timeOutToday">0</span>
+  </div>
+  <div class="box box6">
+    <i class="uil uil-user"></i>
+    <span class="text">Total Employees</span>
+    <span class="number" id="totalEmployees">0</span>
+  </div>
+    </div>
       </div>
 
       <div class="activity">
@@ -51,43 +62,15 @@
           <i class="uil uil-clock-three"></i>
           <span class="text">Recent RFID Activity</span>
         </div>
-        <div class="activity-data">
-          <div class="data names">
-            <span class="data-title">Name</span>
-            <span class="data-list">Juan Dela Cruz</span>
-            <span class="data-list">Maria Santos</span>
-            <span class="data-list">Pedro Reyes</span>
-          </div>
-          <div class="data email">
-            <span class="data-title">Student ID</span>
-            <span class="data-list">20231001</span>
-            <span class="data-list">20231002</span>
-            <span class="data-list">20231003</span>  
-          </div>
-          <div class="data joined">
-            <span class="data-title">Time In</span>
-            <span class="data-list">07:50 AM</span>
-            <span class="data-list">08:02 AM</span>
-            <span class="data-list">07:45 AM</span>
-          </div>
-          <div class="data type">
-            <span class="data-title">RFID Status</span>
-            <span class="data-list">Success</span>
-            <span class="data-list">Success</span>
-            <span class="data-list">Late</span>
-          </div>
-          <div class="data status">
-            <span class="data-title">Remarks</span>
-            <span class="data-list">On Time</span>
-            <span class="data-list">On Time</span>
-            <span class="data-list">Late</span>
-          </div>
-        </div>
+        <div class="activity-data" id="recentActivityContainer">
+        <!-- Dynamically inserted content -->
+      </div>
       </div>
     </div>
   </section>
 
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard-stats.js') }}"></script>
 </body>
 
 </html>
