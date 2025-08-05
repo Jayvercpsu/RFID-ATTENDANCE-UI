@@ -38,8 +38,8 @@ Thumbs.db
 node_modules/
 
 # Ignore credentials
-RFID-ATTENDANCE-UI/flask/credentials/admin.json
+/flask/credentials/admin.json
 
 # Ignore cache folders inside flask folder
-RFID-ATTENDANCE-UI/flask/**/__pycache__/
-RFID-ATTENDANCE-UI/flask/**/*.py[cod]
+/flask/**/__pycache__/
+/flask/**/*.py[cod]
