@@ -132,9 +132,9 @@ $(document).ready(function () {
           });
 
           row.innerHTML = `
-          <td><img src="${
+          <td style="text-align: center; vertical-align: middle;"><img src="${
             firstLog.avatar
-          }" alt="Student Photo" width="50" style="border-radius: 4px;" /></td>
+          }" alt="Student Photo" width="50" style="border-radius: 4px; display: block;" /></td>
           <td>${firstLog.first_name} ${firstLog.last_name}</td>
           <td>${formattedDate}</td>
           <td>${timeIn ? formatTime(timeIn.timestamp) : "N/A"}</td>
@@ -246,7 +246,52 @@ $(document).ready(function () {
   }
 
   function exportToExcel() {
-    alert("This will export to Excel (hook to backend logic)");
+    // Get the DataTable instance
+    const table = $("#employeeLogsTable").DataTable();
+
+    // Get the filtered/sorted data from the table
+    const data = table.rows({ search: "applied" }).data().toArray();
+
+    // Prepare Excel data
+    const excelData = [
+      [
+        "Employee Name",
+        "Date",
+        "Time In",
+        "Time Out",
+        "Total Hours",
+        "Status",
+      ], // Headers
+    ];
+
+    data.forEach((row) => {
+      const fullName = row[1];
+      const date = row[2];
+      const timeIn = row[3];
+      const timeOut = row[4];
+      const totalHours = row[5];
+      const status = row[6];
+
+      excelData.push([
+        fullName,
+        date,
+        timeIn,
+        timeOut,
+        totalHours,
+        status,
+      ]);
+    });
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+    // Generate Excel file and trigger download
+    const currentDate = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(wb, `Employee_Attendance_${currentDate}.xlsx`);
   }
 
   loadAttendanceData();
