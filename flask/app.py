@@ -4,6 +4,7 @@ from pages import pages_bp
 from api import api_bp
 from routes_api.settings import settings_bp
 
+# initiate database connection
 init_db()
 
 app = Flask(__name__)
