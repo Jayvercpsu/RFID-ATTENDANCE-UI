@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -12,6 +13,7 @@
 
   <title>RFID Attendance Logs</title>
 </head>
+
 <body>
 
   <!-- sidebar -->
@@ -35,16 +37,13 @@
               <tr>
                 <th>Photo</th>
                 <th>Status</th>
-                <th>Timestamp</th>
-                <th>First Name</th>
-                <th>Middle Name</th>
-                <th>Last Name</th>
-                <th>Grade</th>
-                <th>Section</th>
-                <th>Gender</th>
+                <th>Name</th>
+                <th>Time</th>  
+                <th>Date</th>
+                <th>Occupation</th>
+                <th>Grade/Year</th>
+                <th>Section/Field</th>
                 <th>Contact</th>
-                <th>Guardian</th>
-                
               </tr>
             </thead>
             <tbody id="logsBody">
@@ -55,13 +54,16 @@
       </div>
     </div>
   </section>
- 
+
 
 
   <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-
+  <script>
+    const profileIconUrl = "{{ url_for('static', filename='images/profile-icon.svg') }}";
+  </script>
   <script src="{{ url_for('static', filename='js/get-logs.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
+
 </html>

@@ -134,8 +134,8 @@ $(document).ready(function () {
 
           row.innerHTML = `
           <td style="text-align: center; vertical-align: middle;"><img src="${
-            firstLog.avatar
-          }" alt="Student Photo" width="50" style="border-radius: 4px; display: block;" /></td>
+            firstLog.avatar || profileIconUrl
+          }" onerror="this.src='${profileIconUrl}'" alt="Student Photo" width="50" style="border-radius: 4px; display: block;" /></td>
           <td>${firstLog.first_name} ${firstLog.last_name}</td>
           <td>${formattedDate}</td>
           <td>${timeIn ? formatTime(timeIn.timestamp) : "N/A"}</td>

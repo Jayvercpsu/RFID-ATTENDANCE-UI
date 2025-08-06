@@ -14,9 +14,7 @@ $(document).ready(function () {
 
         row.innerHTML = `
   <td class="col-avatar"> 
-    ${student.avatar
-            ? `<img src="${student.avatar}" alt="Student Photo" width="50" style="border-radius: 4px;" />`
-            : 'N/A'}
+    <img src="${student.avatar || profileIconUrl}" onerror="this.src='${profileIconUrl}'" alt="Student Photo" width="50" style="border-radius: 4px;" />    
   </td>
   <td class="col-id-number">${student.id_number || ''}</td>
   <td class="col-first_name">${student.first_name || ''}</td>
