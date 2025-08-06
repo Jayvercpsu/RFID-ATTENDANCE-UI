@@ -58,30 +58,78 @@ def register_student():
 
 @api_bp.route('/api/logs', methods=['GET'])
 def get_logs():
+    draw = int(request.args.get('draw', '1'))
+    start = int(request.args.get('start', '0'))
+    length = int(request.args.get('length', '10'))
     log_type = request.args.get('type', '').lower()
+    search_value = request.args.get('search[value]', '').lower()
+
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # We will dynamically build WHERE conditions and parameters
+    where_clauses = ["1=1"]
+    params = []
+
+    # filter by occupation (type)
     if log_type in ("student", "employee"):
-        cur.execute(
-            "SELECT * FROM attendance WHERE lower(occupation)=? ORDER BY timestamp DESC",
-            (log_type,)
-        )
-    else:
-        cur.execute("SELECT * FROM attendance ORDER BY timestamp DESC")
+        where_clauses.append("lower(occupation)=?")
+        params.append(log_type)
+
+    # search by text (first name / last name / occupation)
+    if search_value:
+        where_clauses.append("""(
+            lower(first_name) LIKE ?
+            OR lower(last_name) LIKE ?
+            OR lower(middle_name) LIKE ?
+            OR lower(occupation) LIKE ?
+            OR lower(first_name || ' ' || last_name) LIKE ?
+            OR lower(first_name || ' ' || middle_name || ' ' || last_name) LIKE ?
+            OR lower(strftime('%b %d, %Y', substr(timestamp, 1, 10) || ' ' || substr(timestamp, 12, 8))) LIKE ?
+            OR lower(strftime('%B %d, %Y', substr(timestamp, 1, 10) || ' ' || substr(timestamp, 12, 8))) LIKE ?
+            OR lower(contact) LIKE ?
+            OR lower(grade) LIKE ?
+            OR lower(strandOrSec) LIKE ?
+        )""")
+        search_param = f"%{search_value}%"
+        params += [search_param] * 11
+
+    where_sql = " AND ".join(where_clauses)
+
+    # total records (not filtered by search/type — for DataTables info)
+    cur.execute("SELECT COUNT(*) FROM attendance")
+    records_total = cur.fetchone()[0]
+
+    # filtered count
+    cur.execute(f"SELECT COUNT(*) FROM attendance WHERE {where_sql}", params)
+    records_filtered = cur.fetchone()[0]
+
+    # fetch actual data slice
+    sql = f"""
+        SELECT * FROM attendance
+        WHERE {where_sql}
+        ORDER BY timestamp DESC
+        LIMIT ? OFFSET ?
+    """
+    final_params = params + [length, start]
+    cur.execute(sql, final_params)
 
     rows = cur.fetchall()
     logs = [dict(r) for r in rows]
 
+    # Build avatar URL
     for log in logs:
         photo = log.get("photo")
-        if photo:
-            log["avatar"] = url_for('api.get_student_photo', filename=photo, _external=True)
-        else:
-            log["avatar"] = None
+        log["avatar"] = url_for('api.get_student_photo', filename=photo, _external=True) if photo else None
 
     conn.close()
-    return jsonify(logs)
+
+    return jsonify({
+        "draw": draw,
+        "recordsTotal": records_total,
+        "recordsFiltered": records_filtered,
+        "data": logs
+    })
 
 @api_bp.route('/api/students', methods=['GET'])
 def get_students():

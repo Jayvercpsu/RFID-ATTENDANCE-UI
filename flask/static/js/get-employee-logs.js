@@ -108,62 +108,117 @@ $(document).ready(function () {
   });
 
   function loadAttendanceData() {
-    fetch("/api/logs?type=employee")
-      .then((response) => response.json())
-      .then((data) => {
-        // Group logs by student_id and date
-        const groupedLogs = groupLogsByStudentAndDate(data);
-        const tbody = document.getElementById("logsBody");
-        tbody.innerHTML = "";
-
-        // Process each grouped log
-        Object.values(groupedLogs).forEach((logGroup) => {
-          const row = document.createElement("tr");
-          const firstLog = logGroup.logs[0];
-          const timeIn = logGroup.timeIn;
-          const timeOut = logGroup.timeOut;
-          const totalHours = calculateTotalHours(timeIn, timeOut);
-
-          // Format date (e.g., "Aug 03, 2025")
-          const date = new Date(firstLog.timestamp);
-          const formattedDate = date.toLocaleString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
+    $("#employeeLogsTable").DataTable({
+      destroy: true,
+      serverSide: true,
+      processing: true,
+      language: {
+        searchPlaceholder: "Search employees...",
+      },
+      ajax: {
+        url: "/api/logs?type=employee&export=true",
+        type: "GET",
+        dataSrc: function (json) {
+          // json.data => raw rows from API
+          const grouped = groupLogsByStudentAndDate(json.data);
+          // Convert grouped object back into array of "summary rows"
+          const summaryRows = Object.values(grouped).map((g) => {
+            const first = g.logs[0];
+            const timeIn = g.timeIn;
+            const timeOut = g.timeOut;
+            return {
+              avatar: first.avatar,
+              first_name: first.first_name,
+              last_name: first.last_name,
+              timestamp: first.timestamp, // for date/time display
+              timeIn: timeIn,
+              timeOut: timeOut,
+              id_number: first.id_number,
+              rfid: first.rfid,
+            };
           });
-
-          row.innerHTML = `
-          <td style="text-align: center; vertical-align: middle;"><img src="${
-            firstLog.avatar || profileIconUrl
-          }" onerror="this.src='${profileIconUrl}'" alt="Student Photo" width="50" style="border-radius: 4px; display: block;" /></td>
-          <td>${firstLog.first_name} ${firstLog.last_name}</td>
-          <td>${formattedDate}</td>
-          <td>${timeIn ? formatTime(timeIn.timestamp) : "N/A"}</td>
-          <td>${timeOut ? formatTime(timeOut.timestamp) : "N/A"}</td>
-          <td>${totalHours || "N/A"}</td>
-          <td>${getStatus(timeIn, timeOut)}</td>
-          <td>
-              <button class="btn-save" onclick="openEditPopup(${JSON.stringify({
-                logId:
-                  firstLog.id_number + "_" + formattedDate.replace(/ /g, "_"),
-                rfid: firstLog.rfid,
-                timeIn: timeIn,
-                timeOut: timeOut,
-                firstName: firstLog.first_name,
-                lastName: firstLog.last_name,
-              }).replace(/"/g, "&quot;")})">
-                Edit
-              </button>
-            </td>
-        `;
-          tbody.appendChild(row);
-        });
-
-        $("#employeeLogsTable").DataTable();
-      })
-      .catch((err) => {
-        console.error("Failed to fetch attendance logs:", err);
-      });
+          json.data = summaryRows; // replace raw rows with summary rows
+          return json.data;
+        },
+      },
+      columns: [
+        {
+          data: "avatar",
+          render: function (data) {
+            return `<img src="${
+              data || profileIconUrl
+            }" onerror="this.src='${profileIconUrl}'" width="50"/>`;
+          },
+        },
+        {
+          data: null,
+          render: function (data) {
+            return `${data.first_name || ""} ${data.last_name || ""}`;
+          },
+        },
+        {
+          data: "timestamp",
+          render: function (data) {
+            return new Date(data).toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+              year: "numeric",
+            });
+          },
+        },
+        {
+          data: "timeIn",
+          render: function (timeIn) {
+            return timeIn ? formatTime(timeIn.timestamp) : "N/A";
+          },
+        },
+        {
+          data: "timeOut",
+          render: function (timeOut) {
+            return timeOut ? formatTime(timeOut.timestamp) : "N/A";
+          },
+        },
+        {
+          data: null,
+          render: function (data) {
+            const total =
+              calculateTotalHours(data.timeIn, data.timeOut) || "N/A";
+            return total;
+          },
+        },
+        {
+          data: null,
+          render: function (data) {
+            return getStatus(data.timeIn, data.timeOut);
+          },
+        },
+        {
+          data: null,
+          orderable: false,
+          render: function (data) {
+            const date = new Date(data.timestamp);
+            const formattedDate = date
+              .toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+              })
+              .replace(/ /g, "_");
+            const obj = {
+              logId: data.id_number + "_" + formattedDate,
+              rfid: data.rfid,
+              timeIn: data.timeIn,
+              timeOut: data.timeOut,
+              firstName: data.first_name,
+              lastName: data.last_name,
+            };
+            return `<button class="btn-save" onclick="openEditPopup(${JSON.stringify(
+              obj
+            ).replace(/"/g, "&quot;")})">Edit</button>`;
+          },
+        },
+      ],
+    });
   }
 
   // Helper function to group logs by student and date
@@ -175,7 +230,8 @@ $(document).ready(function () {
       const dateKey = date.toISOString().split("T")[0]; // YYYY-MM-DD
       const key = `${log.id_number}_${dateKey}`;
 
-      if (!grouped[key]) {9
+      if (!grouped[key]) {
+        9;
         grouped[key] = {
           logs: [],
           timeIn: null,
@@ -217,7 +273,6 @@ $(document).ready(function () {
   }
 
   // Calculate hours between time in and time out
-  // Calculate hours between time in and time out
   function calculateTotalHours(timeIn, timeOut) {
     if (!timeIn || !timeOut) return "N/A";
 
@@ -246,39 +301,53 @@ $(document).ready(function () {
     return "Present";
   }
 
-  function exportToExcel() {
-    // Get the DataTable instance
-    const table = $("#employeeLogsTable").DataTable();
+  async function exportToExcel() {
+    try {
+      const res = await fetch("/api/logs?type=employee&length=500");
+      const raw = await res.json();
 
-    // Get the filtered/sorted data from the table
-    const data = table.rows({ search: "applied" }).data().toArray();
+      // Group them exactly how your table is displayed
+      const grouped = groupLogsByStudentAndDate(raw.data);
 
-    // Prepare Excel data
-    const excelData = [
-      ["Employee Name", "Date", "Time In", "Time Out", "Total Hours", "Status"], // Headers
-    ];
+      const excelData = [
+        [
+          "Employee Name",
+          "Date",
+          "Time In",
+          "Time Out",
+          "Total Hours",
+          "Status",
+        ],
+      ];
 
-    data.forEach((row) => {
-      const fullName = row[1];
-      const date = row[2];
-      const timeIn = row[3];
-      const timeOut = row[4];
-      const totalHours = row[5];
-      const status = row[6];
+      Object.values(grouped).forEach((g) => {
+        const first = g.logs[0];
+        const dateObj = new Date(first.timestamp);
+        const formattedDate = dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
+        excelData.push([
+          `${first.first_name} ${first.last_name}`,
+          formattedDate,
+          g.timeIn ? formatTime(g.timeIn.timestamp) : "N/A",
+          g.timeOut ? formatTime(g.timeOut.timestamp) : "N/A",
+          calculateTotalHours(g.timeIn, g.timeOut) || "N/A",
+          getStatus(g.timeIn, g.timeOut),
+        ]);
+      });
 
-      excelData.push([fullName, date, timeIn, timeOut, totalHours, status]);
-    });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(excelData);
+      XLSX.utils.book_append_sheet(wb, ws, "Attendance");
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(excelData);
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-
-    // Generate Excel file and trigger download
-    const currentDate = new Date().toISOString().split("T")[0];
-    XLSX.writeFile(wb, `Employee_Attendance_${currentDate}.xlsx`);
+      const currentDate = new Date().toISOString().split("T")[0];
+      XLSX.writeFile(wb, `Employee_Attendance_${currentDate}.xlsx`);
+      // showAlert("Successfully downloading excel");
+    } catch (error) {
+      showAlert("Error downloading excel: " + error.message, "#f44336");
+    }
   }
 
   function showAlert(message, color = "#4CAF50") {

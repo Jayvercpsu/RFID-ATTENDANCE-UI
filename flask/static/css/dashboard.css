@@ -157,7 +157,16 @@ body.dark li a:hover:before {
 
 body.dark table,
 p,
-.edit-ellipsis {
+.edit-ellipsis, .profile-name {
+  color: var(--text-color) !important;
+}
+
+
+body.dark .settings-section, body.dark .settings-card {
+  background-color: var(--panel-color) !important;
+}
+
+body.dark .settings-card label {
   color: var(--text-color) !important;
 }
 

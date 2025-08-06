@@ -1,7 +1,7 @@
 async function loadLogs() {
   const logsContainer = document.getElementById("logsContainer");
 
-  const res = await fetch("/api/logs");
+  const res = await fetch("/api/logs?length=500");
   console.log(res);
   if (!res.ok) {
     logsContainer.innerHTML =
@@ -9,7 +9,14 @@ async function loadLogs() {
     return;
   }
 
-  const logs = await res.json();
+  const response = await res.json();
+  const logs = response.data || [];
+
+  if (!logs.length) {
+    logsContainer.innerHTML =
+      "<p style='text-align:center;'>Empty logs for today</p>";
+    return;
+  }
 
   // Sort logs descending by timestamp to get the latest entry
   logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -23,8 +30,8 @@ async function loadLogs() {
     document.querySelector("#studentName").textContent =
       latestLog.first_name + " " + latestLog.last_name;
     document.querySelector("#occupation").textContent =
-      latestLog.occupation?.charAt(0).toUpperCase() + latestLog.occupation?.slice(1) ||
-      "N/A";
+      latestLog.occupation?.charAt(0).toUpperCase() +
+        latestLog.occupation?.slice(1) || "N/A";
     document.querySelector(
       "#studentLevel"
     ).textContent = `${latestLog.grade} - ${latestLog.strandOrSec}`;
