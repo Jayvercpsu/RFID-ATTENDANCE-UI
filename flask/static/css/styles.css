@@ -89,12 +89,10 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--primary),
-    var(--accent),
-    var(--primary-light)
-  );
+  background: linear-gradient(90deg,
+      var(--primary),
+      var(--accent),
+      var(--primary-light));
   animation: shimmer 3s linear infinite;
 }
 
@@ -102,6 +100,7 @@ body {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -138,12 +137,12 @@ body {
 }
 
 .logo {
-  padding: 0; 
-  border-radius: 0;  
+  padding: 0;
+  border-radius: 0;
 }
 
 .logo img {
-  width: 50px;  
+  width: 50px;
   height: auto;
   display: block;
 }
@@ -168,8 +167,10 @@ body {
 .admin-btn,
 .register-btn {
   text-decoration: none;
-  padding: 0.28rem 0.5rem; /* reduced padding */
-  font-size: 0.8rem; /* slightly smaller font */
+  padding: 0.28rem 0.5rem;
+  /* reduced padding */
+  font-size: 0.8rem;
+  /* slightly smaller font */
   border: none;
   border-radius: 0.3rem;
   cursor: pointer;
@@ -179,7 +180,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 110px; /* ensure consistent width */
+  min-width: 110px;
+  /* ensure consistent width */
 }
 
 .admin-btn:hover,
@@ -191,7 +193,7 @@ body {
 .register-btn i {
   margin-right: 0.35rem;
 }
- 
+
 .school-name {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   -webkit-background-clip: text;
@@ -278,7 +280,7 @@ body {
 }
 
 /* Medium laptops (15-16") - ~1440px */
-@media screen and (min-width: 1440px) {  
+@media screen and (min-width: 1440px) {
   .student-photo {
     width: 200px;
     height: 200px;
@@ -291,7 +293,7 @@ body {
     gap: 2.5rem;
     padding: 2rem;
   }
-  
+
   .student-photo {
     width: 100px;
     height: 300px;
@@ -306,7 +308,7 @@ body {
     border-radius: 24px;
     min-height: 300px;
   }
-  
+
   .student-photo {
     width: 250px;
     height: 250px;
@@ -335,10 +337,12 @@ body {
 }
 
 @keyframes pulse-dot {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.1);
   }
@@ -466,10 +470,12 @@ body {
 }
 
 @keyframes status-pulse {
+
   0%,
   100% {
     box-shadow: var(--shadow), 0 0 0 0 rgba(46, 125, 50, 0.4);
   }
+
   50% {
     box-shadow: var(--shadow), 0 0 0 15px rgba(46, 125, 50, 0);
   }
@@ -570,6 +576,7 @@ body {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -733,6 +740,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -826,15 +834,37 @@ body {
   border-radius: 12px;
 }
 
-#reader2 > div,
+#reader2>div,
 #reader2 video {
   border-radius: 12px !important;
 }
 
-#reader video, #reader2 video, #webcam {
+#reader video,
+#reader2 video,
+#webcam {
   transform: scaleX(-1);
 }
 
 .toast {
   opacity: 1 !important;
+}
+
+.camera-broken {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.camera-broken img {
+  opacity:0.6;
+  width: 200px;
+}
+
+.camera-broken p {
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
 }

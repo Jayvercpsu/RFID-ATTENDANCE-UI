@@ -2,7 +2,6 @@ async function loadLogs() {
   const logsContainer = document.getElementById("logsContainer");
 
   const res = await fetch("/api/logs?length=500");
-  console.log(res);
   if (!res.ok) {
     logsContainer.innerHTML =
       "<p style='text-align:center;'>Empty logs for today</p>";
@@ -419,6 +418,17 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch((err) => {
         inlineScannerRunning = false;
         console.error("Failed to start inline scanner:", err);
+
+        // ➕ Show fallback broken-camera UI
+        const readerEl = document.getElementById("reader2");
+        readerEl.innerHTML = `
+        <div class='camera-broken'>
+          <img src="/static/images/broken_camera.png" alt="Camera unavailable" />
+          <p>
+            Unable to access camera<br/>Please enable or connect a webcam
+          </p>
+        </div>
+      `;
       });
   }
 
