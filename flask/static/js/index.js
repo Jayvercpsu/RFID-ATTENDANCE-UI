@@ -22,8 +22,8 @@ async function loadLogs() {
 
     document.querySelector("#studentName").textContent =
       latestLog.first_name + " " + latestLog.last_name;
-    document.querySelector("#studentGender").textContent =
-      latestLog.gender?.charAt(0).toUpperCase() + latestLog.gender?.slice(1) ||
+    document.querySelector("#occupation").textContent =
+      latestLog.occupation?.charAt(0).toUpperCase() + latestLog.occupation?.slice(1) ||
       "N/A";
     document.querySelector(
       "#studentLevel"
