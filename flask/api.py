@@ -452,7 +452,52 @@ def update_attendance():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/api/check-rfid', methods=['POST'])
+def check_rfid():
+    data = request.get_json()
+    if not data or 'rfid_code' not in data:
+        return jsonify({"error": "RFID code is required"}), 400
     
+    rfid_code = data['rfid_code']
+
+    if not os.path.exists(STUDENT_FILE):
+        return jsonify({"exists": False, "message": "Database not found"}), 404
+
+    try:
+        with open(STUDENT_FILE, 'r') as f:
+            students = json.load(f)
+
+        exists = any(
+            str(student.get('rfid', '')).lower() == str(rfid_code).lower() or 
+            str(student.get('rfid_code', '')).lower() == str(rfid_code).lower()
+            for student in students
+        )
+
+        if exists:
+            student = next(
+                s for s in students 
+                if (str(s.get('rfid', '')).lower() == str(rfid_code).lower() or 
+                   (str(s.get('rfid_code', '')).lower() == str(rfid_code).lower()
+            )))
+            
+            return jsonify({
+                "exists": True,
+                "student": student,
+                "message": "RFID found in database"
+            })
+        else:
+            return jsonify({
+                "exists": False,
+                "message": "RFID not found in database"
+            })
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "message": "Error checking RFID"
+        }), 500
+
 @api_bp.route('/api/admin-logout')
 def admin_logout():
     resp = make_response(redirect(url_for('pages.admin_login')))

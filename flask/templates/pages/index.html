@@ -20,10 +20,10 @@
 
       <div class="header">
         <div class="branding">
-          <div class="top-branding"> 
-           <div class="logo">
-            <img src="{{ url_for('static', filename='images/logo-cve.png') }}" alt="CVE Logo" />
-          </div>
+          <div class="top-branding">
+            <div class="logo">
+              <img src="{{ url_for('static', filename='images/logo-cve.png') }}" alt="CVE Logo" />
+            </div>
             <div class="school-name">Colleges Inc.</div>
           </div>
           <div class="branding-buttons">
@@ -132,10 +132,10 @@
               <input id="manualCodeInput" type="text" placeholder="Enter code" />
 
               <!-- Hidden field to store scanned QR -->
-              <input type="hidden" id="qrCodeValue" name="qr_code_value" />
+              <input type="hidden" id="scanCodeValue" name="scan_code_value" />
             </div>
             <div style="margin-top: 20px;">
-              <label>Capture Photo (Optional)</label>
+              <label>Capture a Photo (Optional)</label>
               <video id="webcam" autoplay playsinline
                 style="display: block; border: 1px solid #ccc;width: 100%;"></video>
               <canvas id="snapshotCanvas" style="display: none; border: 1px solid #ccc; width: 100%;"></canvas>
@@ -225,8 +225,15 @@
       <div id="reader" style="width: 100%; max-width: 500px;"></div>
     </div>
   </div>
+  <div class="rfid-modal" id="rfidModal">
+    <div class="rfid-panel">
+      <span class="rfid-close-btn" id="closeRFIDModal">&times;</span>
+      <p>Start Scanning</p>
+    </div>
+  </div>
   <audio id="scanSound" preload="auto" src="{{ url_for('static', filename='sound/click.wav') }}"></audio>
   <audio id="scanSoundError" preload="auto" src="{{ url_for('static', filename='sound/click-error.wav') }}"></audio>
+  <script src="{{ url_for('static', filename='js/onscan.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/time-clock.js') }}"></script>
   <script src="{{ url_for('static', filename='js/register-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>

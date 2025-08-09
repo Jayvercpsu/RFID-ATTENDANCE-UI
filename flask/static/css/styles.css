@@ -64,10 +64,10 @@ body {
   max-width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
+  /* border-radius: 20px; */
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  margin: 10px;
+  /* margin: 10px; */
 }
 
 /* LEFT PANEL - Enhanced Main Display */
@@ -809,11 +809,8 @@ body {
   z-index: 9999;
 }
 
-.qr-modal.show {
-  display: flex;
-}
-
-.qr-panel {
+.qr-panel,
+.rfid-panel {
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -822,12 +819,49 @@ body {
   position: relative;
 }
 
-.qr-close-btn {
+.qr-close-btn,
+.rfid-close-btn {
   position: absolute;
   top: 0;
   right: 1rem;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.rfid-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.rfid-modal p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.qr-modal.show,
+.rfid-modal.show {
+  display: flex;
 }
 
 #reader2 {
@@ -859,7 +893,7 @@ body {
 }
 
 .camera-broken img {
-  opacity:0.6;
+  opacity: 0.6;
   width: 200px;
 }
 
