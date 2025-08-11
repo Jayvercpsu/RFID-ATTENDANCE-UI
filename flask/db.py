@@ -28,6 +28,28 @@ def init_db():
             id_number TEXT, contact TEXT, address TEXT, photo TEXT
         )
     """)
+
+     # New users table based on frontend form
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            first_name TEXT,
+            middle_name TEXT,
+            last_name TEXT,
+            age TEXT,
+            gender TEXT,
+            grade TEXT,
+            section TEXT,
+            contact TEXT,
+            address TEXT,
+            guardian TEXT,
+            occupation TEXT,
+            id_number TEXT,
+            rfid_code TEXT,
+            photo TEXT
+        )
+    """)
+    
     conn.commit()
     conn.close()
 

@@ -3,11 +3,9 @@ import zipfile
 import bcrypt
 from flask import Blueprint, request, jsonify
 import os
-import json
 from datetime import datetime
-from werkzeug.utils import secure_filename
 from db import get_db_path
-from utils.path_utils import get_app_data_dir, get_student_file_path, get_photo_folder_path, load_admin, save_admin
+from utils.path_utils import load_admin, save_admin
 
 settings_bp = Blueprint('settings', __name__)
 

@@ -422,7 +422,7 @@ async function createLogs(decodedText) {
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      showAlert("Failed to log attendance. Please try again.");
+      showAlert("Failed to log attendance. Please try again.", "#f44336");
     }
 
     // Allow rescanning of same code after 5 seconds

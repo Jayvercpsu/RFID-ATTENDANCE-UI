@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import sqlite3
 import bcrypt
 from flask import Blueprint, make_response, redirect, request, jsonify, send_from_directory, url_for
 import os
@@ -7,11 +8,10 @@ import json
 import jwt
 from db import get_db_connection
 from utils.auth_utils import SECRET_KEY
-from utils.path_utils import get_app_data_dir, get_photo_folder_path, get_student_file_path, load_admin, save_admin
+from utils.path_utils import get_photo_folder_path, load_admin, save_admin
 from werkzeug.utils import secure_filename
 
 api_bp = Blueprint('api', __name__)
-STUDENT_FILE = os.path.join(get_app_data_dir("CVE_REGISTER"), 'data.json')
 
 @api_bp.route('/api/photo/<filename>')
 def get_student_photo(filename):
@@ -25,35 +25,56 @@ def register_student():
         return {"error": "Missing data"}, 400
     student_data = json.loads(data)
 
+    # Handle photo upload
     photo_file = request.files.get('photo')
     if photo_file:
         photo_folder = get_photo_folder_path()
+        os.makedirs(photo_folder, exist_ok=True)
         filename = secure_filename(f"{student_data['rfid_code']}.jpg")
         filepath = os.path.join(photo_folder, filename)
         photo_file.save(filepath)
         student_data['photo'] = filename
     else:
         student_data['photo'] = None
-# testing comment
-    # Save to data.json logic
-    students_path = get_app_data_dir("CVE_REGISTER")
-    students_file = os.path.join(students_path, "data.json")
-    os.makedirs(students_path, exist_ok=True)
 
-    students = []
-    if os.path.exists(students_file):
-        with open(students_file, "r") as f:
-            try:
-                students = json.load(f)
-            except Exception:
-                students = []
+    # Insert into database
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    students.append(student_data)
+        # Check if RFID already exists
+        cur.execute("SELECT 1 FROM users WHERE rfid_code = ?", (student_data.get('rfid_code'),))
+        if cur.fetchone():
+            conn.close()
+            return {"error": "RFID already exists in database"}, 400
+        
+        cur.execute("""
+            INSERT INTO users (
+                first_name, middle_name, last_name, age, gender, grade,
+                section, contact, address, guardian, occupation, id_number, rfid_code, photo
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            student_data.get('first_name'),
+            student_data.get('middle_name'),
+            student_data.get('last_name'),
+            student_data.get('age'),
+            student_data.get('gender'),
+            student_data.get('grade'),
+            student_data.get('section'),
+            student_data.get('contact'),
+            student_data.get('address'),
+            student_data.get('guardian'),
+            student_data.get('occupation', "Student"),
+            student_data.get('id_number'),
+            student_data.get('rfid_code'),
+            student_data.get('photo')
+        ))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return {"error": str(e)}, 500
 
-    with open(students_file, "w") as f:
-        json.dump(students, f, indent=2)
-
-    occupation = student_data['occupation'] if 'occupation' in student_data else "Student"
+    occupation = student_data.get('occupation', "Student")
     return {"message": f"{occupation} registered successfully!"}
 
 @api_bp.route('/api/logs', methods=['GET'])
@@ -133,62 +154,63 @@ def get_logs():
 
 @api_bp.route('/api/students', methods=['GET'])
 def get_students():
-    if not os.path.exists(STUDENT_FILE):
-        return jsonify([])
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    with open(STUDENT_FILE, 'r') as f:
-        students = json.load(f)
+    # Fetch students where occupation is 'student' OR occupation is NULL
+    cursor.execute("""
+        SELECT * FROM users WHERE occupation IS NULL OR LOWER(occupation) = 'student'
+    """)
+    rows = cursor.fetchall()
 
-    # Filter to include both students and records without occupation field
-    student_list = [
-        student for student in students 
-        if 'occupation' not in student or str(student.get('occupation', '')).lower() == 'student'
-    ]
-
-    # Attach avatar URLs if photo exists
-    for student in student_list:
-        photo_filename = student.get("photo")
-        if photo_filename:
-            student["avatar"] = url_for('api.get_student_photo', filename=photo_filename, _external=True)
+    # Convert DB rows to list of dicts
+    student_list = []
+    for row in rows:
+        student = dict(row)
+        
+        # Attach avatar URLs if photo exists
+        if student.get("photo"):
+            student["avatar"] = url_for(
+                'api.get_student_photo',
+                filename=student["photo"],
+                _external=True
+            )
         else:
             student["avatar"] = None
+        
+        student_list.append(student)
 
+    conn.close()
     return jsonify(student_list)
 
 @api_bp.route('/api/students/<rfid>', methods=['DELETE'])
 def delete_student_by_rfid(rfid):
-    if not os.path.exists(STUDENT_FILE):
-        return jsonify({'error': 'data.json not found'}), 404
-
     try:
-        with open(STUDENT_FILE, 'r') as f:
-            students = json.load(f)
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-        photo_dir = get_photo_folder_path()
-        student_found = False
-        updated_students = []
+        # Check if student exists
+        cursor.execute("SELECT id, photo FROM users WHERE rfid_code = ?", (rfid,))
+        student = cursor.fetchone()
 
-        for student in students:
-            if str(student.get('rfid')) == str(rfid) or str(student.get('rfid_code')) == str(rfid):
-                student_found = True
-                # Attempt to delete photo
-                avatar_path = student.get('avatar')
-                if avatar_path:
-                    try:
-                        photo_filename = os.path.basename(avatar_path)
-                        photo_full_path = os.path.join(photo_dir, photo_filename)
-                        if os.path.exists(photo_full_path):
-                            os.remove(photo_full_path)
-                    except Exception as e:
-                        print(f"Error deleting photo: {e}")
-                continue  # Skip adding this student (we're deleting)
-            updated_students.append(student)
-
-        if not student_found:
+        if not student:
             return jsonify({'error': 'Student not found'}), 404
 
-        with open(STUDENT_FILE, 'w') as f:
-            json.dump(updated_students, f, indent=2)
+        student_id, photo_filename = student
+
+        # Delete the photo file if it exists
+        if photo_filename:
+            photo_dir = get_photo_folder_path()
+            photo_full_path = os.path.join(photo_dir, photo_filename)
+            if os.path.exists(photo_full_path):
+                os.remove(photo_full_path)
+
+        # Delete student record from DB
+        cursor.execute("DELETE FROM users WHERE id = ?", (student_id,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
 
         return jsonify({'message': 'Student and photo deleted successfully'}), 200
 
@@ -197,62 +219,82 @@ def delete_student_by_rfid(rfid):
  
 @api_bp.route('/api/students/<rfid>', methods=['PUT'])
 def update_student_by_rfid(rfid):
-    if not os.path.exists(STUDENT_FILE):
-        return jsonify({'error': 'students.json not found'}), 404
-
     if not request.is_json:
         return jsonify({'error': 'Request must be JSON'}), 400
 
     updated_data = request.get_json()
 
     try:
-        with open(STUDENT_FILE, 'r') as f:
-            students = json.load(f)
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-        student_found = False
-        for student in students:
-            student_rfid = student.get('rfid') or student.get('rfid_code')
-            if student_rfid == rfid:
-                student.update(updated_data)
-                student_found = True
-                break
+        # Fetch column names for SQLite
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [row[1] for row in cursor.fetchall()]  # row[1] = column name
 
-        if not student_found:
+        updatable_fields = [col for col in columns if col != 'rfid_code']
+
+        # Build query dynamically
+        set_clauses = []
+        values = []
+        for key, value in updated_data.items():
+            if key in updatable_fields:
+                set_clauses.append(f"{key} = ?")
+                values.append(value)
+
+        if not set_clauses:
+            return jsonify({'error': 'No valid fields to update'}), 400
+
+        values.append(rfid)  # For WHERE condition
+
+        sql = f"""
+            UPDATE users
+            SET {", ".join(set_clauses)}
+            WHERE rfid_code = ?
+        """
+        cursor.execute(sql, values)
+        conn.commit()
+
+        if cursor.rowcount == 0:
             return jsonify({'error': 'Student not found'}), 404
-
-        with open(STUDENT_FILE, 'w') as f:
-            json.dump(students, f, indent=2)
 
         return jsonify({'message': 'Student updated successfully'}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @api_bp.route('/api/log', methods=['POST'])
 def log_attendance():
     data = request.json
     rfid_code = data.get("rfid")
     if not rfid_code:
-        return jsonify({"error":"RFID is required"}),400
-
-    # load student/person
-    people_file_path = os.path.join(get_app_data_dir(), "data.json")
-    if not os.path.exists(people_file_path):
-        return jsonify({"error":"data.json not found"}),404
-
-    with open(people_file_path,'r') as sf:
-        content = sf.read().strip()
-        people = json.loads(content) if content else []
-
-    matched = next((s for s in people if s.get("rfid")==rfid_code or s.get("rfid_code")==rfid_code), None)
-    if not matched:
-        return jsonify({"error":"Student not found"}),404
+        return jsonify({"error": "RFID is required"}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Load student/person from database instead of data.json
+    cur.execute("""
+        SELECT * FROM users 
+        WHERE rfid_code = ?
+        LIMIT 1
+    """, (rfid_code,))
+    matched = cur.fetchone()
+
+    if not matched:
+        conn.close()
+        return jsonify({"error": "Student not found"}), 404
+
     # get last log for this rfid
-    cur.execute("SELECT * FROM attendance WHERE rfid=? ORDER BY timestamp DESC LIMIT 1", (rfid_code,))
+    cur.execute("""
+        SELECT * FROM attendance 
+        WHERE rfid = ? 
+        ORDER BY timestamp DESC 
+        LIMIT 1
+    """, (rfid_code,))
     last = cur.fetchone()
 
     now = datetime.now()
@@ -267,73 +309,77 @@ def log_attendance():
             if last['status'] == 'IN':
                 status = 'OUT'
             else:
-                # last was OUT, so already timed in & out today
-                return jsonify({"error":"Already timed in/out today"}),403
+                conn.close()
+                return jsonify({"error": "Already timed in/out today"}), 403
         else:
             # DIFFERENT DAY
             if last['status'] == 'IN':
-                # forgot to OUT yesterday → treat now as OUT
                 status = 'OUT'
             else:
-                # last was OUT on previous day → new IN
                 status = 'IN'
     else:
-        # no history at all
         status = 'IN'
 
+    # Insert log entry into attendance table
     cur.execute("""
         INSERT INTO attendance
-        (rfid,status,timestamp,first_name,middle_name,last_name,age,grade,strandOrSec,gender,
-         guardian,occupation,id_number,contact,address,photo)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        (rfid, status, timestamp, first_name, middle_name, last_name, age, grade, strandOrSec, gender,
+         guardian, occupation, id_number, contact, address, photo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         rfid_code, status, now.isoformat(),
-        matched.get("first_name",""),
-        matched.get("middle_name",""),
-        matched.get("last_name",""),
-        matched.get("age",""),
-        matched.get("grade",""),
-        matched.get("section",""),
-        matched.get("gender",""),
-        matched.get("guardian",""),
-        matched.get("occupation",""),
-        matched.get("id_number",""),
-        matched.get("contact",""),
-        matched.get("address",""),
-        matched.get("photo","")
+        matched['first_name'],
+        matched['middle_name'],
+        matched['last_name'],
+        matched['age'],
+        matched['grade'],
+        matched['section'],  # if DB column is strandOrSec, adjust this
+        matched['gender'],
+        matched['guardian'],
+        matched['occupation'],
+        matched['id_number'],
+        matched['contact'],
+        matched['address'],
+        matched['photo']
     ))
+
     conn.commit()
     conn.close()
 
-    return jsonify({"message": f"Log entry saved successfully as {status}","status":status}),200
+    return jsonify({"message": f"Log entry saved successfully as {status}", "status": status}), 200
 
 @api_bp.route('/api/dashboard-stats', methods=['GET'])
 def get_dashboard_stats():
     try:
-        # Load master data.json
-        student_file = os.path.join(get_app_data_dir(), "data.json")
-        with open(student_file, 'r') as sf:
-            students = json.load(sf)
-
-        # Load TODAY's attendance logs from SQLite
         today_str = datetime.now().date().isoformat()
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM attendance WHERE timestamp LIKE ? ORDER BY timestamp DESC", (today_str + "%",))
-        today_logs = [dict(r) for r in cur.fetchall()]
-        conn.close()
 
-        # Totals
-        total_students  = len([s for s in students if s.get("occupation", "").lower() == "student"])
-        total_employees = len([s for s in students if s.get("occupation", "").lower() == "employee"])
+        # Count students
+        cur.execute("SELECT COUNT(*) FROM users WHERE LOWER(occupation) = 'student'")
+        total_students = cur.fetchone()[0]
+
+        # Count employees
+        cur.execute("SELECT COUNT(*) FROM users WHERE LOWER(occupation) = 'employee'")
+        total_employees = cur.fetchone()[0]
+
+        # Get today's logs
+        cur.execute("""
+            SELECT * FROM attendance
+            WHERE timestamp LIKE ?
+            ORDER BY timestamp DESC
+        """, (today_str + "%",))
+        today_logs = [dict(r) for r in cur.fetchall()]
 
         # Stats
-        time_in_today  = len([log for log in today_logs if log["status"] == "IN"])
-        time_out_today = len([log for log in today_logs if log["status"] == "OUT"])
-        present_today  = len(set(log["rfid"] for log in today_logs if log["status"] == "IN"))
+        time_in_today = sum(1 for log in today_logs if log["status"] == "IN")
+        time_out_today = sum(1 for log in today_logs if log["status"] == "OUT")
+        present_today = len(set(log["rfid"] for log in today_logs if log["status"] == "IN"))
 
-        # Most recent 3 logs for dashboard
+        # Most recent 3 logs
         recent_logs = today_logs[:3]
+
+        conn.close()
 
         return jsonify({
             "total_students": total_students,
@@ -458,32 +504,30 @@ def check_rfid():
     data = request.get_json()
     if not data or 'rfid_code' not in data:
         return jsonify({"error": "RFID code is required"}), 400
-    
+
     rfid_code = data['rfid_code']
 
-    if not os.path.exists(STUDENT_FILE):
-        return jsonify({"exists": False, "message": "Database not found"}), 404
-
     try:
-        with open(STUDENT_FILE, 'r') as f:
-            students = json.load(f)
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row  # Enables dictionary-like access
+        cur = conn.cursor()
 
-        exists = any(
-            str(student.get('rfid', '')).lower() == str(rfid_code).lower() or 
-            str(student.get('rfid_code', '')).lower() == str(rfid_code).lower()
-            for student in students
-        )
+        # Search by rfid_code (case-insensitive)
+        query = """
+            SELECT * FROM users
+            WHERE LOWER(rfid_code) = LOWER(?)
+            LIMIT 1
+        """
+        cur.execute(query, (rfid_code,))
+        student = cur.fetchone()
 
-        if exists:
-            student = next(
-                s for s in students 
-                if (str(s.get('rfid', '')).lower() == str(rfid_code).lower() or 
-                   (str(s.get('rfid_code', '')).lower() == str(rfid_code).lower()
-            )))
-            
+        cur.close()
+        conn.close()
+
+        if student:
             return jsonify({
                 "exists": True,
-                "student": student,
+                "student": dict(student),  # Convert sqlite Row to dict
                 "message": "RFID found in database"
             })
         else:

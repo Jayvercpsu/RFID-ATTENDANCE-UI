@@ -10,7 +10,7 @@ $(document).ready(function () {
 
       data.forEach((student) => {
         const row = document.createElement("tr");
-        row.setAttribute("data-rfid", student.rfid || student.rfid_code);
+        row.setAttribute("data-rfid", student.rfid_code);
 
         row.innerHTML = `
   <td class="col-avatar"> 
@@ -53,9 +53,7 @@ $(document).ready(function () {
       right: 100%;
       top: 0;
     ">
-      <button class="btn-edit" data-rfid="${
-        student.rfid || student.rfid_code
-      }" style="
+      <button class="btn-edit" data-rfid="${student.rfid_code}" style="
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -71,9 +69,7 @@ $(document).ready(function () {
         <span>Edit</span>
         <i class="fas fa-pen"></i>
       </button>
-      <button onclick='openDeletePopup("${
-        student.rfid || student.rfid_code
-      }")' style="
+      <button onclick='openDeletePopup("${student.rfid_code}")' style="
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -132,17 +128,26 @@ $(document).ready(function () {
       .then(() => {
         const row = $(`tr[data-rfid="${updated.rfid}"]`);
         if (row.length) {
-          const cells = row[0].children;
+          const updatedStudent = updated;
 
-          cells[0].textContent = updated.first_name;
-          cells[2].textContent = updated.last_name;
-          cells[3].textContent = updated.age;
-          cells[4].textContent = updated.gender;
-          cells[5].textContent = updated.grade;
-          cells[6].textContent = updated.section;
-          cells[7].textContent = updated.contact;
-          cells[8].textContent = updated.address;
-          cells[9].textContent = updated.guardian;
+          // Map column selectors to updated values
+          const fieldMap = {
+            ".col-first_name": updatedStudent.first_name,
+            ".col-middle_name": updatedStudent.middle_name,
+            ".col-last_name": updatedStudent.last_name,
+            ".col-age": updatedStudent.age,
+            ".col-gender": updatedStudent.gender,
+            ".col-grade": updatedStudent.grade,
+            ".col-section": updatedStudent.section,
+            ".col-contact": updatedStudent.contact,
+            ".col-address": updatedStudent.address,
+            ".col-guardian": updatedStudent.guardian,
+          };
+
+          // Update each column using jQuery
+          $.each(fieldMap, function (selector, value) {
+            row.find(selector).text(value || "");
+          });
         }
 
         closeEditPopup();
@@ -159,15 +164,13 @@ $(document).ready(function () {
         return res.json();
       })
       .then((data) => {
-        const student = data.find(
-          (s) => s.rfid === rfid || s.rfid_code === rfid
-        );
+        const student = data.find((s) => s.rfid_code === rfid);
         if (!student) {
           alert("Student not found.");
           return;
         }
 
-        const resolvedRfid = student.rfid || student.rfid_code;
+        const resolvedRfid = student.rfid_code;
         if (!resolvedRfid) {
           alert("Missing RFID or RFID code. Cannot edit this student.");
           return;
@@ -234,66 +237,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-document
-  .getElementById("editForm")
-  .addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const rfid = document.getElementById("edit_rfid").value;
-    const updatedStudent = {
-      first_name: document.getElementById("edit_first_name").value,
-      middle_name: document.getElementById("edit_middle_name").value,
-      last_name: document.getElementById("edit_last_name").value,
-      age: document.getElementById("edit_age").value,
-      gender: document.getElementById("edit_gender").value,
-      grade: document.getElementById("edit_grade").value,
-      section: document.getElementById("edit_section").value,
-      contact: document.getElementById("edit_contact").value,
-      address: document.getElementById("edit_address").value,
-      guardian: document.getElementById("edit_guardian").value,
-    };
-
-    try {
-      const response = await fetch(`/api/students/${rfid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedStudent),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        showAlert("Student updated successfully.");
-        closeEditPopup();
-
-        const row = document.querySelector(`tr[data-rfid="${rfid}"]`);
-        if (row) {
-          row.querySelector(".col-first_name").textContent =
-            updatedStudent.first_name;
-          row.querySelector(".col-middle_name").textContent =
-            updatedStudent.middle_name;
-          row.querySelector(".col-last_name").textContent =
-            updatedStudent.last_name;
-          row.querySelector(".col-age").textContent = updatedStudent.age;
-          row.querySelector(".col-gender").textContent = updatedStudent.gender;
-          row.querySelector(".col-grade").textContent = updatedStudent.grade;
-          row.querySelector(".col-section").textContent =
-            updatedStudent.section;
-          row.querySelector(".col-contact").textContent =
-            updatedStudent.contact;
-          row.querySelector(".col-address").textContent =
-            updatedStudent.address;
-          row.querySelector(".col-guardian").textContent =
-            updatedStudent.guardian;
-        }
-      } else {
-        showAlert(result.error || "Update failed.", "#f44336");
-      }
-    } catch (error) {
-      showAlert("Error updating student: " + error.message, "#f44336");
-    }
-  });
-
 function showAlert(message, color = "#4CAF50") {
   const alertBox = document.getElementById("alertBox");
   const alertMessage = document.getElementById("alertMessage");
@@ -340,7 +283,7 @@ function confirmDelete() {
     .then((data) => {
       if (data.message) {
         $(`tr[data-rfid="${deleteRFID}"]`).remove();
-        showAlert("Student deleted successfully.", "#f44336");
+        showAlert("Student deleted successfully.");
         closeDeletePopup();
       } else {
         showAlert(data.error || "Delete failed.", "#f44336");
