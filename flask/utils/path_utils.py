@@ -12,6 +12,9 @@ DEFAULT_ADMIN_PATH = os.path.join(
     "admin.json"
 )
 
+def get_appdata_path():
+    return os.getenv('APPDATA', os.path.expanduser('~'))
+
 def get_app_data_dir(app_name="CVE_REGISTER"):
     base_dir = os.getenv("APPDATA", os.path.expanduser("~"))
     app_data_dir = os.path.join(base_dir, app_name)

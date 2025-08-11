@@ -40,5 +40,3 @@ for original_url in font_urls:
 # Step 5: Save the updated CSS
 with open(css_path, 'w') as f:
     f.write(css_content)
-
-print("✅ Unicons downloaded and saved locally!")

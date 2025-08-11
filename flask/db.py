@@ -2,9 +2,12 @@
 import os
 from utils.path_utils import get_app_data_dir
 
+def get_db_name():
+    return "attendance.db"
+
 def get_db_path():
     folder = get_app_data_dir("RFID_ATTENDANCE")
-    return os.path.join(folder, "attendance.db")
+    return os.path.join(folder, get_db_name())
 
 def get_db_connection():
     db_path = get_db_path()
