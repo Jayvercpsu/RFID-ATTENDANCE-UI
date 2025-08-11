@@ -6,3 +6,7 @@ start-local:
 
 py-install:
 	pip install -r flask/requirements.txt
+
+# migrations
+seed-users:
+	cd flask && python migrations/seed_users.py
