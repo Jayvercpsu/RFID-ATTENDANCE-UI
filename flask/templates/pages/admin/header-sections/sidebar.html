@@ -1,23 +1,14 @@
-<link
-  href="{{ url_for('static', filename='css/line.css') }}"
-  rel="stylesheet"
-/>
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/students-modal.css') }}"
-/>
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/admin-profile.css') }}"
-/>
+<link href="{{ url_for('static', filename='css/line.css') }}" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students-modal.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-profile.css') }}" />
 
 <nav>
-<div class="logo-name">
-  <div class="logo-image">
-    <img src="{{ url_for('static', filename='images/logo-cve.png') }}" alt="CVE Logo" />
+  <div class="logo-name">
+    <div class="logo-image">
+      <img src="{{ url_for('static', filename='images/logo-cve.png') }}" alt="CVE Logo" />
+    </div>
+    <span class="logo_name">Colleges Inc.</span>
   </div>
-  <span class="logo_name">Colleges Inc.</span>
-</div>
   <div class="menu-items">
     <ul class="nav-links">
       <li>
@@ -27,16 +18,23 @@
         </a>
       </li>
       <li>
-        <a href="{{ url_for('pages.admin_attendance_logs') }}">
-          <i class="uil-calendar-alt"></i>
-          <span class="link-name">Attendance Logs</span>
-        </a>
-      </li>
-      <li>
-        <a href="{{ url_for('pages.admin_students') }}">
+        <a href="{{ url_for('pages.admin_students') }}?type=student">
           <i class="uil-user"></i>
           <!-- Changed from uil-user -->
           <span class="link-name">Students</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_students') }}?type=employee">
+          <i class="uil-user"></i>
+          <!-- Changed from uil-user -->
+          <span class="link-name">Employees</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pages.admin_attendance_logs') }}">
+          <i class="uil-calendar-alt"></i>
+          <span class="link-name">Attendance Logs</span>
         </a>
       </li>
       <li>

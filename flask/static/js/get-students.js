@@ -1,8 +1,10 @@
 let deleteRFID = null;
 let studentsTable = null;
+let type = null;
 
-$(document).ready(function () {
-  fetch("/api/students")
+function fetchUsers(userType) {
+  userType = userType || type; 
+  fetch(`/api/students?type=${userType}`)
     .then((response) => response.json())
     .then((data) => {
       const tbody = document.getElementById("studentsBody");
@@ -13,81 +15,83 @@ $(document).ready(function () {
         row.setAttribute("data-rfid", student.rfid_code);
 
         row.innerHTML = `
-  <td class="col-avatar"> 
-    <img src="${
-      student.avatar || profileIconUrl
-    }" onerror="this.src='${profileIconUrl}'" alt="Student Photo" width="50" style="border-radius: 4px;" />    
-  </td>
-  <td class="col-id-number">${student.id_number || ""}</td>
-  <td class="col-first_name">${student.first_name || ""}</td>
-  <td class="col-middle_name">${student.middle_name || ""}</td>
-  <td class="col-last_name">${student.last_name || ""}</td>
-  <td class="col-age">${student.age || ""}</td>
-  <td class="col-gender">${student.gender || ""}</td>
-  <td class="col-grade">${student.grade || ""}</td>
-  <td class="col-section">${student.strandOrSec || student.section || ""}</td>
-  <td class="col-contact">${student.contact || ""}</td>
-  <td class="col-address">${student.address || ""}</td>
- 
- <td style="position: relative; overflow: visible; text-align: left;">
-  <div style="position: relative; display: inline-block;">
-    <!-- Three Dots Button -->
-    <button class="btn-save" onclick="toggleMenu(this)" style="cursor: pointer; z-index: 2; position: relative;">
-      <i class="fas fa-ellipsis-v"></i>
-    </button>
+          <td class="col-avatar"> 
+            <img src="${
+              student.avatar || profileIconUrl
+            }" onerror="this.src='${profileIconUrl}'" alt="Student Photo" width="50" style="border-radius: 4px;" />    
+          </td>
+          <td class="col-id-number">${student.id_number || ""}</td>
+          <td class="col-first_name">${student.first_name || ""}</td>
+          <td class="col-middle_name">${student.middle_name || ""}</td>
+          <td class="col-last_name">${student.last_name || ""}</td>
+          <td class="col-age">${student.age || ""}</td>
+          <td class="col-gender">${student.gender || ""}</td>
+          <td class="col-grade">${student.grade || ""}</td>
+          <td class="col-section">${
+            student.strandOrSec || student.section || ""
+          }</td>
+          <td class="col-contact">${student.contact || ""}</td>
+          <td class="col-address">${student.address || ""}</td>
+        
+        <td style="position: relative; overflow: visible; text-align: left;">
+          <div style="position: relative; display: inline-block;">
+            <!-- Three Dots Button -->
+            <button class="btn-save" onclick="toggleMenu(this)" style="cursor: pointer; z-index: 2; position: relative;">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
 
-    <!-- Dropdown Menu -->
-    <div class="dropdown-menu" style="
-      display: none;
-      opacity: 0;
-      transform: translateX(5px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      position: absolute;
-      z-index: 3;
-      min-width: 50px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      padding: 4px 0;
-      right: 100%;
-      top: 0;
-    ">
-      <button class="btn-edit" data-rfid="${student.rfid_code}" style="
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 16px;
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: right;
-        cursor: pointer;
-        font-size: 14px;
-      ">
-        <span>Edit</span>
-        <i class="fas fa-pen"></i>
-      </button>
-      <button onclick='openDeletePopup("${student.rfid_code}")' style="
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 16px;
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: right;
-        cursor: pointer;
-        font-size: 14px;
-      ">
-        <span>Delete</span>
-        <i class="fas fa-trash" style="color: red;"></i>
-      </button>
-    </div>
-  </div>
-</td>
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu" style="
+              display: none;
+              opacity: 0;
+              transform: translateX(5px);
+              transition: opacity 0.2s ease, transform 0.2s ease;
+              position: absolute;
+              z-index: 3;
+              min-width: 50px;
+              background: #fff;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              padding: 4px 0;
+              right: 100%;
+              top: 0;
+            ">
+              <button class="btn-edit" data-rfid="${student.rfid_code}" style="
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 16px;
+                background: none;
+                border: none;
+                width: 100%;
+                text-align: right;
+                cursor: pointer;
+                font-size: 14px;
+              ">
+                <span>Edit</span>
+                <i class="fas fa-pen"></i>
+              </button>
+              <button onclick='openDeletePopup("${student.rfid_code}")' style="
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 16px;
+                background: none;
+                border: none;
+                width: 100%;
+                text-align: right;
+                cursor: pointer;
+                font-size: 14px;
+              ">
+                <span>Delete</span>
+                <i class="fas fa-trash" style="color: red;"></i>
+              </button>
+            </div>
+          </div>
+        </td>
         `;
         tbody.appendChild(row);
       });
@@ -101,6 +105,27 @@ $(document).ready(function () {
         },
       });
     });
+}
+
+$(document).ready(function () {
+  const params = new URLSearchParams(window.location.search);
+  type = params.get("type");
+  isEmployee = type === "employee";
+
+  if (isEmployee) {
+    $("#list-title").text("Employee List");
+    $("#list-userId").text("Employee ID");
+    $("#list-grade").text("Year Level");
+    $("#edit-list-grade").text("Year Level:");
+    $("#list-section").text("Field");
+    $("#edit-list-section").text("Field:");
+    $("#delete-user-modal").text(
+      "Are you sure you want to delete this employee?"
+    );
+    $("#edit-title-form").text("Edit Employee");
+  }
+
+  fetchUsers();
 
   $("#editForm").submit(function (e) {
     e.preventDefault();
@@ -151,14 +176,16 @@ $(document).ready(function () {
         }
 
         closeEditPopup();
-        showAlert("Student updated successfully");
+        showAlert(
+          `${isEmployee ? "Employee" : "Student"} updated successfully`
+        );
       });
   });
 
   $(document).on("click", ".btn-edit", function () {
     const rfid = $(this).data("rfid");
 
-    fetch("/api/students")
+    fetch(`/api/students?type=${type}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch student list");
         return res.json();
@@ -283,7 +310,10 @@ function confirmDelete() {
     .then((data) => {
       if (data.message) {
         $(`tr[data-rfid="${deleteRFID}"]`).remove();
-        showAlert("Student deleted successfully.");
+        showAlert(
+          `${isEmployee ? "Employee" : "Student"} deleted successfully`
+        );
+        
         closeDeletePopup();
       } else {
         showAlert(data.error || "Delete failed.", "#f44336");

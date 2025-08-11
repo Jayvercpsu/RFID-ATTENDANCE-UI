@@ -111,9 +111,10 @@ def check_rfid_service(request):
         }), 500
 
 
-def get_students_service():
+def get_students_service(request):
     try:
-        rows = fetch_students()
+        type_param = request.args.get('type')
+        rows = fetch_students(type_param)
         student_list = []
 
         for row in rows:

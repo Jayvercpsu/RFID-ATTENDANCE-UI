@@ -20,7 +20,7 @@ def get_logs():
 
 @api_bp.route('/api/students', methods=[HTTPMethod.GET])
 def get_students():
-    return get_students_service()
+    return get_students_service(request)
 
 @api_bp.route('/api/students/<rfid>', methods=[HTTPMethod.DELETE])
 def delete_student_by_rfid(rfid):

@@ -140,12 +140,20 @@ def find_user_by_rfid(conn: Connection, rfid_code):
     return user
 
 
-def fetch_students():
+def fetch_students(type='student'):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT * FROM users WHERE occupation IS NULL OR LOWER(occupation) = 'student'
-    """)
+
+    if type == 'employee':
+        cur.execute("""
+            SELECT * FROM users WHERE LOWER(occupation) = 'employee'
+        """)
+    else:
+        # Default to student or null occupation
+        cur.execute("""
+            SELECT * FROM users WHERE occupation IS NULL OR LOWER(occupation) = 'student'
+        """)
+
     rows = cur.fetchall()
     conn.close()
     return rows
